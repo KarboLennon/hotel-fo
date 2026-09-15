@@ -27,7 +27,7 @@ export type ReservationFormMode = "editable" | "stayLocked" | "readOnly";
 
 export function ReservationForm({ options, defaultValues, reservationId, mode = "editable", docs }: {
   options: ReservationOptions; defaultValues: ReservationInput; reservationId?: string; mode?: ReservationFormMode;
-  docs?: { number: string; folioNumber: string | null };
+  docs?: { number: string; folioNumber: string | null; balance?: number };
 }) {
   // readOnly: terminal reservation, nothing may change. stayLocked: checked in — the folio
   // already reflects the stored stay, so stay / rate / source / special request stay frozen
@@ -97,6 +97,11 @@ export function ReservationForm({ options, defaultValues, reservationId, mode = 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [w.roomTypeId, w.arrivalDate, w.departureDate]);
 
+  // Typing over an identifying field means this is no longer the linked guest record:
+  // drop the link so the save creates a new Guest instead of overwriting the old one.
+  const unlink = () => setValue("guestId", undefined);
+  const identity = { onChange: unlink };
+
   const pickGuest = (g: GuestSummary) => {
     const { id, ...guest } = g;
     setValue("guestId", id);
@@ -124,11 +129,17 @@ export function ReservationForm({ options, defaultValues, reservationId, mode = 
       {/* Column 1 */}
       <div className="space-y-4">
         <Panel title="Guest Information" actions={!readOnly && <Button type="button" variant="ghost" size="sm" onClick={() => setGuestDialog(true)}><Search size={12} /> Find</Button>}>
+          {w.guestId && (
+            <div className="flex items-center justify-between gap-2 mb-2">
+              <span className="text-[11px] text-muted">Linked to existing guest</span>
+              {!readOnly && <Button type="button" variant="ghost" size="sm" onClick={unlink}>Unlink</Button>}
+            </div>
+          )}
           <div className="grid grid-cols-[90px_1fr] gap-2 items-start">
             <Field label="Title"><Select {...register("guest.title")}><option value="MR">Mr.</option><option value="MRS">Mrs.</option><option value="DR">Dr.</option><option value="MISS">Miss</option></Select></Field>
-            <Field label="Last name *" error={err("guest.lastName")}><Input {...register("guest.lastName")} aria-invalid={!!err("guest.lastName")} /></Field>
+            <Field label="Last name *" error={err("guest.lastName")}><Input {...register("guest.lastName", identity)} aria-invalid={!!err("guest.lastName")} /></Field>
           </div>
-          <Field label="First name *" error={err("guest.firstName")} className="mt-2"><Input {...register("guest.firstName")} aria-invalid={!!err("guest.firstName")} /></Field>
+          <Field label="First name *" error={err("guest.firstName")} className="mt-2"><Input {...register("guest.firstName", identity)} aria-invalid={!!err("guest.firstName")} /></Field>
           <p className="label mt-3 mb-1">Address</p>
           <Field label="Address *" error={err("guest.address")}><Input {...register("guest.address")} aria-invalid={!!err("guest.address")} /></Field>
           <div className="grid grid-cols-2 gap-2 mt-2">
@@ -139,13 +150,13 @@ export function ReservationForm({ options, defaultValues, reservationId, mode = 
           </div>
           <p className="label mt-3 mb-1">Contact</p>
           <div className="grid grid-cols-2 gap-2">
-            <Field label="Email *" error={err("guest.email")}><Input type="email" {...register("guest.email")} /></Field>
+            <Field label="Email *" error={err("guest.email")}><Input type="email" {...register("guest.email", identity)} /></Field>
             <Field label="Phone"><Input {...register("guest.phone")} /></Field>
           </div>
           <p className="label mt-3 mb-1">Identity</p>
           <div className="grid grid-cols-2 gap-2">
             <Field label="ID type *"><Select {...register("guest.idType")}><option value="KTP">KTP</option><option value="SIM">SIM</option><option value="PASSPORT">Passport</option></Select></Field>
-            <Field label="ID number *" error={err("guest.idNumber")}><Input {...register("guest.idNumber")} /></Field>
+            <Field label="ID number *" error={err("guest.idNumber")}><Input {...register("guest.idNumber", identity)} /></Field>
             <Field label="Exp. month" error={err("guest.idExpMonth")}>
               <Select {...register("guest.idExpMonth", { setValueAs: (v) => (v === "" ? undefined : Number(v)) })} disabled={readOnly || w.guest?.idLifetime}>
                 <option value="">—</option>{MONTHS.map((m) => <option key={m} value={m}>{m}</option>)}
@@ -269,7 +280,10 @@ export function ReservationForm({ options, defaultValues, reservationId, mode = 
             {[["Room charge", rate.roomCharge], ["Tax", rate.tax], ["Extra", rate.extra], ["Total", rate.total]].map(([k, v]) => (
               <div key={k as string} className="flex justify-between py-1.5 border-b border-line-soft"><dt className="text-muted">{k}</dt><dd className="tabular-nums">{formatMoney(v as number)}</dd></div>
             ))}
-            <div className="flex justify-between items-center py-2 bg-paper-2 -mx-3 px-3 mt-1"><dt className="label text-ink">Balance</dt><dd className="display text-base tabular-nums">{formatMoney(rate.balance)}</dd></div>
+            <div className="flex justify-between items-center py-2 bg-paper-2 -mx-3 px-3 mt-1"><dt className="label text-ink">Estimated total</dt><dd className="display text-base tabular-nums">{formatMoney(rate.balance)}</dd></div>
+            {typeof docs?.balance === "number" && (
+              <div className="flex justify-between items-center py-2 border-t border-line-soft"><dt className="label text-ink">Folio balance</dt><dd className="display text-base tabular-nums">{formatMoney(docs.balance)}</dd></div>
+            )}
           </dl>
           <p className="text-[10px] text-muted mt-2">Tax {options.settings.taxPercent}%. Pembayaran dicatat saat check-in/checkout di folio.</p>
         </Panel>

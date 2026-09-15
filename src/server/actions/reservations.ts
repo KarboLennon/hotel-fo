@@ -3,6 +3,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { db } from "@/server/db";
 import { requireUser } from "@/server/session";
+import { logError } from "@/server/log";
 import { ok, fail, zodFail, type ActionResult } from "@/lib/action-result";
 import { reservationSchema, type ReservationInput } from "@/lib/validation/reservation";
 import { combineDateTime, nightsFromDates } from "@/server/services/dates";
@@ -46,6 +47,10 @@ export async function saveReservation(raw: ReservationInput, id?: string): Promi
     const departure = combineDateTime(input.departureDate, input.departureTime);
     const nights = nightsFromDates(arrival, departure);
     const cardLast4 = input.settlementMethod === "CREDIT" ? input.cardNumber?.replace(/\D/g, "").slice(-4) || null : null;
+    // One row per item: the schema rejects duplicates, but a duplicate slipping through
+    // would violate the (reservationId, itemId) unique index, so fold them here too.
+    const specialRequests = [...input.specialRequests.reduce((m, s) => m.set(s.itemId, (m.get(s.itemId) ?? 0) + s.qty), new Map<string, number>())]
+      .map(([itemId, qty]) => ({ itemId, qty }));
 
     const saved = await db.$transaction(async (tx) => {
       const existing = id ? await tx.reservation.findUnique({ where: { id } }) : null;
@@ -88,8 +93,8 @@ export async function saveReservation(raw: ReservationInput, id?: string): Promi
 
       if (!stayLocked) {
         await tx.reservationSpecialRequest.deleteMany({ where: { reservationId: res.id } });
-        if (input.specialRequests.length) {
-          await tx.reservationSpecialRequest.createMany({ data: input.specialRequests.map((s) => ({ reservationId: res.id, itemId: s.itemId, qty: s.qty })) });
+        if (specialRequests.length) {
+          await tx.reservationSpecialRequest.createMany({ data: specialRequests.map((s) => ({ reservationId: res.id, itemId: s.itemId, qty: s.qty })) });
         }
       }
       return res;
@@ -97,10 +102,11 @@ export async function saveReservation(raw: ReservationInput, id?: string): Promi
     revalidatePath("/"); revalidatePath("/reservations"); revalidatePath(`/reservations/${saved.id}`);
     return ok({ id: saved.id });
   } catch (e) {
+    logError("saveReservation", e);
     if (e instanceof NotFoundError) return fail("Reservasi tidak ditemukan");
     if (e instanceof ClosedError) return fail("Reservasi tidak bisa diubah lagi");
     if (e instanceof RoomUnavailableError) return fail("Kamar tidak tersedia pada tanggal tersebut", { roomId: ["Kamar sudah terisi / out of order pada tanggal ini"] });
-    return fail(e instanceof Error ? e.message : "Gagal menyimpan reservasi");
+    return fail("Gagal menyimpan reservasi");
   }
 }
 
@@ -123,7 +129,8 @@ export async function getAvailableRooms(roomTypeId: string, arrivalDate: string,
       .filter((r) => isRoomAvailable(arrival, departure, r.reservations, r.outOfOrders, excludeReservationId))
       .sort((a, b) => (Number(a.number) || 0) - (Number(b.number) || 0))
       .map((r) => ({ id: r.id, number: r.number }));
-  } catch {
+  } catch (e) {
+    logError("getAvailableRooms", e);
     return [];
   }
 }

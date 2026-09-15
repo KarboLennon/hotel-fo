@@ -2,9 +2,12 @@
 import { revalidatePath } from "next/cache";
 import { db } from "@/server/db";
 import { requireUser } from "@/server/session";
+import { logError } from "@/server/log";
 import { ok, fail, zodFail, type ActionResult } from "@/lib/action-result";
 import { guestSchema, type GuestInput } from "@/lib/validation/guest";
 import { toGuestInput, guestData, type GuestSummary } from "@/server/queries/guests";
+
+class HasReservationsError extends Error {}
 
 export async function searchGuests(q: string): Promise<GuestSummary[]> {
   await requireUser();
@@ -16,7 +19,8 @@ export async function searchGuests(q: string): Promise<GuestSummary[]> {
       orderBy: [{ lastName: "asc" }, { firstName: "asc" }], take: 20,
     });
     return guests.map(toGuestInput);
-  } catch {
+  } catch (e) {
+    logError("searchGuests", e);
     return [];
   }
 }
@@ -29,7 +33,8 @@ export async function saveGuest(raw: GuestInput, id?: string): Promise<ActionRes
     const g = id ? await db.guest.update({ where: { id }, data: guestData(parsed.data) }) : await db.guest.create({ data: guestData(parsed.data) });
     revalidatePath("/guests");
     return ok({ id: g.id });
-  } catch {
+  } catch (e) {
+    logError("saveGuest", e);
     return fail("Gagal menyimpan tamu");
   }
 }
@@ -39,12 +44,14 @@ export async function deleteGuest(id: string): Promise<ActionResult> {
   try {
     await db.$transaction(async (tx) => {
       const count = await tx.reservation.count({ where: { guestId: id } });
-      if (count > 0) throw new Error("Tamu punya riwayat reservasi, tidak bisa dihapus");
+      if (count > 0) throw new HasReservationsError();
       await tx.guest.delete({ where: { id } });
     });
     revalidatePath("/guests");
     return ok(null);
   } catch (e) {
-    return fail(e instanceof Error ? e.message : "Gagal menghapus tamu");
+    logError("deleteGuest", e);
+    if (e instanceof HasReservationsError) return fail("Tamu punya riwayat reservasi, tidak bisa dihapus");
+    return fail("Gagal menghapus tamu");
   }
 }

@@ -2,6 +2,7 @@
 import { revalidatePath } from "next/cache";
 import { db } from "@/server/db";
 import { requireUser } from "@/server/session";
+import { logError } from "@/server/log";
 import { ok, fail, type ActionResult } from "@/lib/action-result";
 import { nextStatus, InvalidTransitionError, type ReservationAction } from "@/server/services/status";
 import { isRoomAvailable } from "@/server/services/availability";
@@ -59,6 +60,7 @@ export async function transitionReservation(id: string, action: Exclude<Reservat
     revalidatePath("/"); revalidatePath("/reservations"); revalidatePath(`/reservations/${id}`); revalidatePath("/guest-ledger");
     return ok(null);
   } catch (e) {
+    logError("transitionReservation", e);
     if (e instanceof NotFoundError) return fail("Reservasi tidak ditemukan");
     if (e instanceof FolioMissingError) return fail("Folio tidak ditemukan");
     if (e instanceof InvalidTransitionError) return fail(e.message);

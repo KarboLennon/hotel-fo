@@ -2,6 +2,7 @@
 import { revalidatePath } from "next/cache";
 import { db } from "@/server/db";
 import { requireUser } from "@/server/session";
+import { logError } from "@/server/log";
 import { ok, fail, type ActionResult } from "@/lib/action-result";
 
 export async function markRoomClean(roomId: string): Promise<ActionResult> {
@@ -12,7 +13,8 @@ export async function markRoomClean(roomId: string): Promise<ActionResult> {
     await db.room.update({ where: { id: roomId }, data: { isDirty: false } });
     revalidatePath("/");
     return ok(null);
-  } catch {
+  } catch (e) {
+    logError("markRoomClean", e);
     return fail("Gagal memperbarui status kamar");
   }
 }

@@ -2,6 +2,7 @@
 import { revalidatePath } from "next/cache";
 import { db } from "@/server/db";
 import { requireUser } from "@/server/session";
+import { logError } from "@/server/log";
 import { ok, fail, zodFail, type ActionResult } from "@/lib/action-result";
 import { guestMessageSchema, type GuestMessageInput } from "@/lib/validation/guest-message";
 
@@ -24,7 +25,8 @@ export async function saveGuestMessage(raw: GuestMessageInput, id?: string): Pro
     const m = id ? await db.guestMessage.update({ where: { id }, data }) : await db.guestMessage.create({ data });
     revalidatePath("/guest-messages");
     return ok({ id: m.id });
-  } catch {
+  } catch (e) {
+    logError("saveGuestMessage", e);
     return fail("Gagal menyimpan pesan");
   }
 }
@@ -37,7 +39,8 @@ export async function deleteGuestMessage(id: string): Promise<ActionResult> {
     await db.guestMessage.delete({ where: { id } });
     revalidatePath("/guest-messages");
     return ok(null);
-  } catch {
+  } catch (e) {
+    logError("deleteGuestMessage", e);
     return fail("Gagal menghapus pesan");
   }
 }

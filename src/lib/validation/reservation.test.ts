@@ -23,6 +23,14 @@ describe("reservationSchema", () => {
     expect(r.success).toBe(false);
     expect(r.error?.issues.some((i) => i.path.join(".") === "guest.idExpMonth")).toBe(true);
   });
+  it("rejects two special request rows for the same item", () => {
+    const r = reservationSchema.safeParse({ ...base, specialRequests: [{ itemId: "bed", qty: 1 }, { itemId: "bed", qty: 2 }] });
+    expect(r.success).toBe(false);
+    expect(r.error?.issues.some((i) => i.path.join(".") === "specialRequests.1.itemId" && i.message === "Item duplikat")).toBe(true);
+  });
+  it("accepts different special request items", () => {
+    expect(reservationSchema.safeParse({ ...base, specialRequests: [{ itemId: "bed", qty: 1 }, { itemId: "cot", qty: 2 }] }).success).toBe(true);
+  });
   it("requires card type for credit", () => {
     const r = reservationSchema.safeParse({ ...base, settlementMethod: "CREDIT" });
     expect(r.success).toBe(false);

@@ -33,5 +33,10 @@ export const reservationSchema = z.object({
   if (r.settlementMethod === "CREDIT" && (!r.cardType || r.cardType === "CASH")) {
     ctx.addIssue({ code: "custom", path: ["cardType"], message: "Pilih tipe kartu" });
   }
+  const seen = new Set<string>();
+  r.specialRequests.forEach((s, i) => {
+    if (seen.has(s.itemId)) ctx.addIssue({ code: "custom", path: ["specialRequests", i, "itemId"], message: "Item duplikat" });
+    seen.add(s.itemId);
+  });
 });
 export type ReservationInput = z.infer<typeof reservationSchema>;

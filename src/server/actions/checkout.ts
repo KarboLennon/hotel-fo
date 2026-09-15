@@ -3,6 +3,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { db } from "@/server/db";
 import { requireUser } from "@/server/session";
+import { logError } from "@/server/log";
 import { ok, fail, zodFail, type ActionResult } from "@/lib/action-result";
 import { nextStatus, InvalidTransitionError } from "@/server/services/status";
 import { round2 } from "@/server/services/rate";
@@ -41,6 +42,7 @@ export async function addFolioLine(reservationId: string, raw: z.infer<typeof li
     revalidatePath(`/reservations/${reservationId}`); revalidatePath(`/reservations/${reservationId}/checkout`); revalidatePath("/guest-ledger"); revalidatePath("/");
     return ok(null);
   } catch (e) {
+    logError("addFolioLine", e);
     if (e instanceof NotFoundError) return fail("Folio tidak ditemukan");
     if (e instanceof ClosedError) return fail("Reservasi sudah ditutup");
     return fail("Gagal menyimpan pembayaran");
@@ -69,6 +71,7 @@ export async function settleReservation(id: string): Promise<ActionResult> {
     revalidatePath("/"); revalidatePath("/reservations"); revalidatePath(`/reservations/${id}`); revalidatePath("/guest-ledger");
     return ok(null);
   } catch (e) {
+    logError("settleReservation", e);
     if (e instanceof NotFoundError) return fail("Reservasi tidak ditemukan");
     if (e instanceof InvalidTransitionError) return fail(e.message);
     if (e instanceof BalanceNotZeroError) return fail(`Balance masih ${e.balance.toFixed(2)}. Lunasi dulu sebelum check out.`);

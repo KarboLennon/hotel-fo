@@ -1,4 +1,3 @@
-import { format } from "date-fns";
 import type { ReservationInput } from "@/lib/validation/reservation";
 import type { ReservationOptions } from "@/server/queries/options";
 import type { ReservationDetail } from "@/server/queries/reservations";
@@ -38,4 +37,3 @@ export function detailToFormValues(d: ReservationDetail): ReservationInput {
     voucherNo: d.voucherNo ?? "", notes: d.notes ?? "", specialRequests: d.specialRequests.map((s) => ({ itemId: s.itemId, qty: s.qty })),
   };
 }
-export const todayStr = () => format(new Date(), "yyyy-MM-dd");
