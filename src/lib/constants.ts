@@ -1,4 +1,7 @@
-export const RESERVATION_STATUSES = ["RESERVED", "CHECKED_IN", "CHECKED_OUT", "CANCELLED", "NO_SHOW", "VOID"] as const;
+export const SCHOOL_NAME = "SMK Pariwisata Puspa Wisata PGRI Serpong";
+export const SCHOOL_SHORT = "Puspa Wisata";
+
+export const RESERVATION_STATUSES =["RESERVED", "CHECKED_IN", "CHECKED_OUT", "CANCELLED", "NO_SHOW", "VOID"] as const;
 export type ReservationStatus = (typeof RESERVATION_STATUSES)[number];
 
 export const ROOM_STATUSES = ["VACANT", "OCCUPIED", "RESERVED", "OUT_OF_ORDER"] as const;

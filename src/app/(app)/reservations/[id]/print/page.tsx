@@ -1,4 +1,6 @@
+import Image from "next/image";
 import { notFound } from "next/navigation";
+import { SCHOOL_NAME } from "@/lib/constants";
 import { getReservationDetail } from "@/server/queries/reservations";
 import { PrintButton } from "@/components/reservation/print-button";
 import { formatDateTime, formatMoney } from "@/lib/format";
@@ -18,7 +20,10 @@ export default async function PrintPage({ params }: { params: Promise<{ id: stri
   return (
     <div className="max-w-2xl mx-auto">
       <div className="flex justify-between items-end mb-6">
-        <div><p className="label">Reservation Confirmation</p><h1 className="display text-2xl">Hotel Front Office</h1></div>
+        <div className="flex items-center gap-3">
+          <Image src="/logo.png" alt={SCHOOL_NAME} width={56} height={56} />
+          <div><p className="label">Reservation Confirmation</p><h1 className="display text-2xl">{SCHOOL_NAME}</h1><p className="text-[11px] text-muted">Hotel Front Office · Praktik Siswa</p></div>
+        </div>
         <PrintButton />
       </div>
       <table className="w-full text-[12px]">
