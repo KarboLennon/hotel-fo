@@ -14,18 +14,20 @@ export function RoomCard({ room, date }: { room: RoomRow; date: string }) {
   const href = reservation ? `/reservations/${reservation.id}` : state.status === "VACANT" ? `/reservations/new?roomId=${room.id}&date=${date}` : "/out-of-order";
   const showMarkClean = state.isDirty && state.status === "VACANT";
   return (
-    <div className="relative">
-      <Link href={href} className="relative flex flex-col justify-between min-h-[74px] border border-line bg-paper p-2.5 pl-3.5 hover:border-accent-2 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-accent">
-        <span className={cn("absolute left-0 top-0 bottom-0 w-[3px]", ROOM_STATUS_COLOR[state.status])} aria-hidden />
+    // The card is a plain box; the Link covers the info area and the Mark clean button (when shown)
+    // gets its own row underneath, so the two interactive elements never overlap or nest.
+    <div className="relative flex flex-col min-h-[74px] border border-line bg-paper hover:border-accent-2 focus-within:border-accent-2">
+      <span className={cn("absolute left-0 top-0 bottom-0 w-[3px]", ROOM_STATUS_COLOR[state.status])} aria-hidden />
+      <Link href={href} className="flex flex-1 flex-col justify-between gap-2 p-2.5 pl-3.5 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-accent">
         <div>
           <div className="display text-base leading-tight">{room.number}</div>
           <div className="text-[10px] text-muted">{room.typeName}</div>
         </div>
-        {/* When the Mark clean button is shown (absolutely positioned bottom-right), reserve its width so text never sits under it. */}
-        <div className={cn("flex items-end justify-between gap-1", showMarkClean && "pr-[84px]")}>
+        <div className="flex items-end justify-between gap-1">
           {reservation ? <span className="text-[11px] truncate">{reservation.guestName}</span>
-            : showMarkClean ? <span className="label text-[8px] text-status-dirty">Vacant · Dirty</span>
-            : <span className={cn("label text-[8px]", STATUS_TEXT[state.status])}>{STATUS_LABEL[state.status]}</span>}
+            : <span className={cn("label text-[8px] whitespace-nowrap", showMarkClean ? "text-status-dirty" : STATUS_TEXT[state.status])}>
+                {showMarkClean ? "Vacant · Dirty" : STATUS_LABEL[state.status]}
+              </span>}
           <span className="flex gap-1 items-center">
             {state.isDueOut && <span className="label text-[8px] text-status-reserved">Due out</span>}
             {state.isDirty && !showMarkClean && <span className="label text-[8px] text-status-dirty">Dirty</span>}
@@ -33,8 +35,8 @@ export function RoomCard({ room, date }: { room: RoomRow; date: string }) {
         </div>
       </Link>
       {showMarkClean && (
-        <div className="absolute right-2 bottom-2">
-          <MarkCleanButton roomId={room.id} />
+        <div className="px-2.5 pb-2.5 pl-3.5">
+          <MarkCleanButton roomId={room.id} className="w-full" />
         </div>
       )}
     </div>
