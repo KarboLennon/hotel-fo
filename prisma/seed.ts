@@ -1,5 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
+import { seedDemo } from "./seed-demo";
 
 const db = new PrismaClient();
 
@@ -70,6 +71,7 @@ async function main() {
       create: { name: "Front Desk", email: "fo@hotel.local", role: "RECEPTIONIST", passwordHash: await bcrypt.hash("fo12345", 10) },
     });
   }
+  await seedDemo(db);
   console.log("seed done");
 }
 
