@@ -10,10 +10,10 @@ import { addDays, startOfDay } from "date-fns";
 export const dynamic = "force-dynamic";
 
 const STEPS = [
-  { icon: CalendarDays, title: "Pilih tanggal", text: "Tentukan check-in, check-out, jumlah tamu, dan lewat mana booking dilakukan (website atau OTA)." },
-  { icon: BedDouble, title: "Pilih kamar", text: "Lihat tipe kamar yang masih tersedia di tanggal itu beserta harga per malam." },
-  { icon: UserRound, title: "Isi data tamu", text: "Nama, kontak, identitas, dan permintaan khusus seperti yang diminta resepsionis." },
-  { icon: CreditCard, title: "Pembayaran & booking", text: "Pilih bayar di hotel atau kartu kredit, lalu terima nomor reservasi RESN." },
+  { icon: CalendarDays, title: "Pilih tanggal", text: "Tentukan tanggal check-in dan check-out, jumlah tamu, serta kanal pemesanan Anda." },
+  { icon: BedDouble, title: "Pilih kamar", text: "Bandingkan tipe kamar yang tersedia lengkap dengan harga per malam dan total menginap." },
+  { icon: UserRound, title: "Lengkapi data tamu", text: "Isi nama, kontak, identitas, dan permintaan khusus agar kedatangan Anda disiapkan dengan baik." },
+  { icon: CreditCard, title: "Konfirmasi", text: "Pilih cara pembayaran dan terima nomor reservasi Anda seketika." },
 ];
 
 export default async function LandingPage() {
@@ -29,10 +29,10 @@ export default async function LandingPage() {
         {/* Ink overlay keeps the headline legible over any photo while staying on the token palette. */}
         <div className="absolute inset-0 bg-ink/60" aria-hidden />
         <div className="relative max-w-5xl mx-auto">
-          <p className="label text-accent mb-3">{SCHOOL_SHORT} Hotel · Booking Simulation</p>
-          <h1 className="display text-4xl md:text-6xl leading-tight max-w-3xl">Rencanakan menginap, seperti tamu sungguhan.</h1>
+          <p className="label text-accent mb-3">{SCHOOL_SHORT} Hotel · Serpong, Tangerang Selatan</p>
+          <h1 className="display text-4xl md:text-6xl leading-tight max-w-3xl">Ketenangan yang terasa sejak Anda tiba.</h1>
           <p className="mt-4 max-w-2xl text-paper/85 text-[14px]">
-            Halaman ini meniru booking engine hotel. Setiap booking yang dibuat di sini langsung muncul di aplikasi Front Office sebagai reservasi baru untuk dilatih: check-in, folio, sampai check-out.
+            Kamar dan suite bergaya klasik, layanan yang penuh perhatian, dan harga terbaik saat Anda memesan langsung. Pilih tanggal, temukan kamar, dan kami siapkan sisanya.
           </p>
         </div>
       </section>
@@ -66,8 +66,8 @@ export default async function LandingPage() {
 
       <section id="how" className="px-6 pb-16">
         <div className="max-w-5xl mx-auto border-t border-line pt-10">
-          <p className="label text-accent-2">Cara booking</p>
-          <h2 className="display text-3xl mb-6">Empat langkah</h2>
+          <p className="label text-accent-2">Cara memesan</p>
+          <h2 className="display text-3xl mb-6">Empat langkah menuju kamar Anda</h2>
           <ol className="grid grid-cols-1 md:grid-cols-4 gap-4">
             {STEPS.map((s, i) => (
               <li key={s.title} className="bg-paper border border-line p-5">
@@ -78,7 +78,7 @@ export default async function LandingPage() {
             ))}
           </ol>
           <p className="mt-6 text-[12px] text-muted">
-            Resepsionis? Masuk ke <Link href="/fo" className="text-accent-2 underline focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-accent">aplikasi Front Office</Link> untuk memproses reservasi yang masuk.
+            Staf hotel: kelola reservasi yang masuk melalui <Link href="/fo" className="text-accent-2 underline focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-accent">aplikasi Front Office</Link>.
           </p>
         </div>
       </section>

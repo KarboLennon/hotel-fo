@@ -9,7 +9,7 @@ test("guest books online → confirmation shows RESN number → visible in Front
   const departure = format(addDays(new Date(), 22), "yyyy-MM-dd");
 
   await page.goto("/");
-  await expect(page.getByRole("heading", { name: /Rencanakan menginap/ })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /Ketenangan yang terasa/ })).toBeVisible();
   await page.getByLabel("Check-in").fill(arrival);
   await page.getByLabel("Check-out").fill(departure);
   await page.getByLabel("Sumber booking").selectOption({ label: "Traveloka" });

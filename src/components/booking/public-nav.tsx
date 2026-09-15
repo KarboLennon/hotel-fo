@@ -11,12 +11,12 @@ export function PublicNav() {
         <Image src="/logo.png" alt={SCHOOL_NAME} width={40} height={40} priority />
         <span className="leading-tight">
           <span className="display text-lg block">{SCHOOL_SHORT} <span className="text-accent">Hotel</span></span>
-          <span className="label text-[8px] text-paper/70 block">Booking Simulation · Praktik Siswa</span>
+          <span className="label text-[8px] text-paper/70 block">Hotel &amp; Suites · Serpong</span>
         </span>
       </Link>
       <div className="flex items-center gap-6">
         <Link href="/#rooms" className={link}>Kamar</Link>
-        <Link href="/#how" className={link}>Cara Booking</Link>
+        <Link href="/#how" className={link}>Cara Memesan</Link>
         <Link href="/fo" className="label border border-paper/60 px-4 py-2 text-paper hover:bg-paper hover:text-ink focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-accent active:translate-y-px">
           Front Office
         </Link>
