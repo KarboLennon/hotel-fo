@@ -1,36 +1,68 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Hotel Front Office
 
-## Getting Started
+Aplikasi Front Office hotel: dashboard kamar (Room / List / Stay View), reservasi
+(reserve → check in → check out), folio & pembayaran, out of order, guest ledger,
+database tamu, dan guest messages. Spesifikasi lengkap ada di
+`docs/superpowers/specs/2026-09-15-hotel-front-office-design.md`.
 
-First, run the development server:
+## Stack
+
+Next.js 15 (App Router, server actions) · TypeScript strict · Tailwind v4 (token-based
+design system) · Prisma 6 + PostgreSQL · Auth.js (credentials) · react-hook-form + zod ·
+Vitest (unit) · Playwright (e2e).
+
+Struktur: logika murni di `src/server/services/` (tanpa Prisma, diuji unit), query baca di
+`src/server/queries/`, server action di `src/server/actions/` (selalu mengembalikan
+`ActionResult`, tidak pernah throw), komponen UI di `src/components/`.
+
+## Setup lokal
+
+1. Siapkan PostgreSQL (lokal atau `docker compose up -d db`).
+2. Salin env: `cp .env.example .env`, lalu isi `DATABASE_URL` dan `AUTH_SECRET`
+   (buat dengan `openssl rand -base64 32`).
+3. Install dependency: `npm install`
+4. Migrasi skema: `npx prisma migrate dev`
+5. Isi data awal: `npx prisma db seed`
+   (membuat `admin@hotel.local` / `ADMIN_PASSWORD`, default `admin123`, plus
+   `fo@hotel.local` / `fo12345` khusus non-production)
+6. Jalankan: `npm run dev` → http://localhost:3000
+
+## Test
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm run test         # unit (Vitest)
+npm run e2e:install  # sekali saja: unduh browser Playwright
+npm run e2e          # end-to-end, butuh DB ter-seed
+npm run lint
+npm run typecheck
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+`npm run e2e` menjalankan alur login → reservasi → check in → check out → guest ledger di
+server dev pada port 3000. Pastikan port itu bebas sebelum dan sesudah menjalankannya.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Deploy (Docker)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+1. Siapkan env di host: `AUTH_SECRET` dan `ADMIN_PASSWORD` (wajib saat production —
+   seed akan gagal bila kosong).
 
-## Learn More
+   ```bash
+   export AUTH_SECRET=$(openssl rand -base64 32)
+   export ADMIN_PASSWORD='ganti-password-ini'
+   ```
 
-To learn more about Next.js, take a look at the following resources:
+2. Build dan jalankan: `docker compose up -d --build`
+   Container app menjalankan `prisma migrate deploy` lalu `node server.js`, jadi skema
+   selalu ikut naik. Kedua service memakai `restart: unless-stopped`.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+3. Seed sekali saja setelah container jalan. Image runtime tidak memuat `tsx`, jadi seed
+   dijalankan dari host terhadap database yang sama (publish port `5432` pada service `db`
+   atau jalankan di jaringan yang sama):
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+   ```bash
+   DATABASE_URL='postgresql://hotel:hotel@localhost:5432/hotel_fo?schema=public' \
+   ADMIN_PASSWORD="$ADMIN_PASSWORD" NODE_ENV=production \
+   npx prisma db seed
+   ```
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+   Seed bersifat idempotent (upsert / `skipDuplicates`), aman diulang. Di production
+   hanya user admin yang dibuat; resepsionis demo tidak ikut.

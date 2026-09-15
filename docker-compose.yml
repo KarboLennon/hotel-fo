@@ -5,15 +5,18 @@ services:
       POSTGRES_USER: hotel
       POSTGRES_PASSWORD: hotel
       POSTGRES_DB: hotel_fo
+    restart: unless-stopped
     volumes: ["pgdata:/var/lib/postgresql/data"]
     healthcheck: { test: ["CMD-SHELL", "pg_isready -U hotel"], interval: 5s, retries: 10 }
   app:
     build: .
+    restart: unless-stopped
     ports: ["3000:3000"]
     environment:
       DATABASE_URL: postgresql://hotel:hotel@db:5432/hotel_fo?schema=public
       AUTH_SECRET: ${AUTH_SECRET}
       AUTH_TRUST_HOST: "true"
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD}
       TZ: Asia/Jakarta
     depends_on:
       db: { condition: service_healthy }

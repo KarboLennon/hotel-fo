@@ -3,6 +3,13 @@ import bcrypt from "bcryptjs";
 
 const db = new PrismaClient();
 
+function adminPassword(): string {
+  const fromEnv = process.env.ADMIN_PASSWORD;
+  if (fromEnv) return fromEnv;
+  if (process.env.NODE_ENV === "production") throw new Error("ADMIN_PASSWORD is required");
+  return "admin123";
+}
+
 async function main() {
   await db.setting.createMany({
     data: [
@@ -50,12 +57,15 @@ async function main() {
 
   await db.user.upsert({
     where: { email: "admin@hotel.local" }, update: {},
-    create: { name: "Admin", email: "admin@hotel.local", role: "ADMIN", passwordHash: await bcrypt.hash("admin123", 10) },
+    create: { name: "Admin", email: "admin@hotel.local", role: "ADMIN", passwordHash: await bcrypt.hash(adminPassword(), 10) },
   });
-  await db.user.upsert({
-    where: { email: "fo@hotel.local" }, update: {},
-    create: { name: "Front Desk", email: "fo@hotel.local", role: "RECEPTIONIST", passwordHash: await bcrypt.hash("fo12345", 10) },
-  });
+  // Demo receptionist with a well-known password: development and e2e only.
+  if (process.env.NODE_ENV !== "production") {
+    await db.user.upsert({
+      where: { email: "fo@hotel.local" }, update: {},
+      create: { name: "Front Desk", email: "fo@hotel.local", role: "RECEPTIONIST", passwordHash: await bcrypt.hash("fo12345", 10) },
+    });
+  }
   console.log("seed done");
 }
 
