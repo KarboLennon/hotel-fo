@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { BedDouble, CalendarDays, CreditCard, UserRound } from "lucide-react";
 import { SearchForm } from "@/components/booking/search-form";
@@ -23,11 +24,14 @@ export default async function LandingPage() {
   ]);
   return (
     <>
-      <section className="bg-ink text-paper px-6 pt-16 pb-24">
-        <div className="max-w-5xl mx-auto">
+      <section className="relative bg-ink text-paper px-6 pt-24 pb-32 overflow-hidden">
+        <Image src="/images/hero.jpg" alt="" fill priority sizes="100vw" className="object-cover object-center" />
+        {/* Ink overlay keeps the headline legible over any photo while staying on the token palette. */}
+        <div className="absolute inset-0 bg-ink/60" aria-hidden />
+        <div className="relative max-w-5xl mx-auto">
           <p className="label text-accent mb-3">{SCHOOL_SHORT} Hotel · Booking Simulation</p>
-          <h1 className="display text-4xl md:text-5xl leading-tight max-w-3xl">Rencanakan menginap, seperti tamu sungguhan.</h1>
-          <p className="mt-4 max-w-2xl text-paper/75 text-[14px]">
+          <h1 className="display text-4xl md:text-6xl leading-tight max-w-3xl">Rencanakan menginap, seperti tamu sungguhan.</h1>
+          <p className="mt-4 max-w-2xl text-paper/85 text-[14px]">
             Halaman ini meniru booking engine hotel. Setiap booking yang dibuat di sini langsung muncul di aplikasi Front Office sebagai reservasi baru untuk dilatih: check-in, folio, sampai check-out.
           </p>
         </div>
@@ -43,7 +47,10 @@ export default async function LandingPage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {types.map((t) => (
               <article key={t.id} className="bg-paper border border-line p-5 flex flex-col gap-3">
-                <div className="h-28 bg-paper-3 flex items-end p-3"><span className="label text-[9px]">{t.size} · {t.bed}</span></div>
+                <div className="relative h-44 overflow-hidden">
+                  <Image src={t.image} alt={t.name} fill sizes="(min-width: 768px) 33vw, 100vw" className="object-cover" />
+                  <span className="absolute left-3 bottom-3 label text-[9px] text-paper bg-ink/70 px-2 py-1">{t.size} · {t.bed}</span>
+                </div>
                 <h3 className="display text-xl">{t.name}</h3>
                 <p className="text-[12px] text-muted flex-1">{t.blurb}</p>
                 <div className="flex items-end justify-between border-t border-line-soft pt-3">

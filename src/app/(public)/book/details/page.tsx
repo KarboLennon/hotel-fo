@@ -29,7 +29,7 @@ export default async function DetailsPage({ searchParams }: { searchParams: Prom
       <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-6 items-start">
         <BookingDetailsForm search={search} roomTypeId={quote.type.id} />
         <StaySummary stay={stay} adults={search.adults} kids={search.children} channel={channel.name}
-          roomType={quote.type.name} ratePerNight={quote.type.ratePerNight} rate={quote.rate} taxPercent={taxPercent} />
+          roomType={quote.type.name} image={quote.type.image} ratePerNight={quote.type.ratePerNight} rate={quote.rate} taxPercent={taxPercent} />
       </div>
     </div>
   );

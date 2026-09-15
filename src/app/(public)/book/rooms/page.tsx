@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { SearchForm } from "@/components/booking/search-form";
 import { StaySummary } from "@/components/booking/stay-summary";
@@ -34,7 +35,10 @@ export default async function RoomsPage({ searchParams }: { searchParams: Promis
               const rate = calculateRate({ ratePerNight: t.ratePerNight, nights: stay.nights, taxPercent });
               const full = t.available === 0;
               return (
-                <article key={t.id} className="bg-paper border border-line p-5 grid grid-cols-1 md:grid-cols-[1fr_auto] gap-4">
+                <article key={t.id} className="bg-paper border border-line p-4 grid grid-cols-1 md:grid-cols-[180px_1fr_auto] gap-4">
+                  <div className="relative h-32 md:h-full min-h-32 overflow-hidden">
+                    <Image src={t.image} alt={t.name} fill sizes="180px" className="object-cover" />
+                  </div>
                   <div>
                     <h2 className="display text-xl">{t.name}</h2>
                     <p className="text-[11px] text-muted">{t.size} · {t.bed}</p>

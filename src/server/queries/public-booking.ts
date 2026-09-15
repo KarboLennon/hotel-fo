@@ -13,11 +13,13 @@ export async function getBookingSources() {
   return [{ id: DIRECT_SOURCE, name: "Website hotel (langsung)" }, ...sources.map((s) => ({ id: s.id, name: s.name }))];
 }
 
-const DESCRIPTIONS: Record<string, { size: string; bed: string; blurb: string }> = {
-  "Super Deluxe": { size: "32 m²", bed: "1 King atau 2 Twin", blurb: "Kamar luas dengan pemandangan kota, area kerja, dan kamar mandi marmer." },
-  "King Suite": { size: "48 m²", bed: "1 King", blurb: "Suite dengan ruang tamu terpisah, walk-in closet, dan akses lounge." },
-  "Presidential": { size: "120 m²", bed: "1 King + kamar tamu", blurb: "Suite lantai atas dengan ruang makan, dapur kecil, dan butler service." },
+/** Marketing copy + photo per room type (photos: Unsplash License, see public/images/CREDITS.md). */
+const DESCRIPTIONS: Record<string, { size: string; bed: string; blurb: string; image: string }> = {
+  "Super Deluxe": { size: "32 m²", bed: "1 King atau 2 Twin", blurb: "Kamar luas dengan pemandangan taman, area kerja, dan kamar mandi marmer.", image: "/images/super-deluxe.jpg" },
+  "King Suite": { size: "48 m²", bed: "1 King", blurb: "Suite dengan ruang tamu terpisah, walk-in closet, dan akses lounge.", image: "/images/king-suite.jpg" },
+  "Presidential": { size: "120 m²", bed: "1 King + kamar tamu", blurb: "Suite lantai atas dengan ruang makan, dapur kecil, dan butler service.", image: "/images/presidential.jpg" },
 };
+const FALLBACK = { size: "", bed: "", blurb: "", image: "/images/super-deluxe.jpg" };
 
 export async function getRoomTypeAvailability(stay: Stay) {
   const [types, daily] = await Promise.all([
@@ -41,7 +43,7 @@ export async function getRoomTypeAvailability(stay: Stay) {
     return {
       id: t.id, name: t.name, ratePerNight, totalRooms: t.rooms.length,
       available: countAvailable(candidates, stay.arrival, stay.departure),
-      ...(DESCRIPTIONS[t.name] ?? { size: "", bed: "", blurb: "" }),
+      ...(DESCRIPTIONS[t.name] ?? FALLBACK),
     };
   });
 }
