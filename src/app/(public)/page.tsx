@@ -36,7 +36,8 @@ export default async function LandingPage() {
           </p>
         </div>
       </section>
-      <section className="px-6 -mt-12">
+      {/* Pulled up over the hero; needs its own stacking context so the hero photo cannot paint over it. */}
+      <section className="relative z-10 px-6 -mt-12">
         <div className="max-w-5xl mx-auto"><SearchForm sources={sources} /></div>
       </section>
 
