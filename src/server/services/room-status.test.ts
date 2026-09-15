@@ -30,6 +30,24 @@ describe("deriveRoomStatus", () => {
     expect(s.status).toBe("RESERVED");
     expect(s.current?.status).toBe("RESERVED");
   });
+  it("does not occupy a future day past the departure", () => {
+    const s = deriveRoomStatus({ isDirty: false }, [res("CHECKED_IN", d(2023, 12, 15), d(2023, 12, 18))], [], d(2023, 12, 20), today);
+    expect(s.status).toBe("VACANT");
+    expect(s.isDueOut).toBe(false);
+  });
+  it("overstaying guest still occupies today", () => {
+    const s = deriveRoomStatus({ isDirty: false }, [res("CHECKED_IN", d(2023, 12, 10), d(2023, 12, 12))], [], today, today);
+    expect(s).toMatchObject({ status: "OCCUPIED", isDueOut: true });
+  });
+  it("shows a future reservation on the room a departed stay no longer blocks", () => {
+    const s = deriveRoomStatus(
+      { isDirty: false },
+      [res("CHECKED_IN", d(2023, 12, 15), d(2023, 12, 18)), { id: "r2", status: "RESERVED", arrival: d(2023, 12, 19), departure: d(2023, 12, 22) }],
+      [], d(2023, 12, 20), today,
+    );
+    expect(s.status).toBe("RESERVED");
+    expect(s.current?.id).toBe("r2");
+  });
   it("ignores cancelled, void, no-show, checked-out", () => {
     for (const st of ["CANCELLED", "VOID", "NO_SHOW", "CHECKED_OUT"] as const) {
       expect(deriveRoomStatus({ isDirty: false }, [res(st, d(2023, 12, 16), d(2023, 12, 18))], [], today).status).toBe("VACANT");

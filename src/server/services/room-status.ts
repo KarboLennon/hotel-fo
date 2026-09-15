@@ -1,4 +1,4 @@
-import { startOfDay } from "date-fns";
+import { addDays, startOfDay } from "date-fns";
 import type { ReservationStatus, RoomStatus, StatusFilter } from "@/lib/constants";
 
 export interface ReservationWindow { id: string; status: ReservationStatus; arrival: Date; departure: Date }
@@ -17,10 +17,16 @@ export function deriveRoomStatus(
   reservations: ReservationWindow[],
   ooo: OooWindow[],
   date: Date,
+  today: Date = date,
 ): DerivedRoomState {
   const day = t(date);
-  const checkedIn = reservations.find((r) => r.status === "CHECKED_IN" && t(r.arrival) <= day);
-  const isDueOut = !!checkedIn && t(checkedIn.departure) <= day;
+  const now = t(today);
+  // A checked-in stay occupies the room through its departure day (exclusive). An
+  // overstaying guest keeps the room until they are checked out, so the window is
+  // extended to the end of today — but never onto future dates past the departure.
+  const until = (r: ReservationWindow) => Math.max(t(r.departure), t(addDays(today, 1)));
+  const checkedIn = reservations.find((r) => r.status === "CHECKED_IN" && t(r.arrival) <= day && day < until(r));
+  const isDueOut = !!checkedIn && t(checkedIn.departure) <= now && day === now;
 
   if (ooo.some((w) => isOooActive(w, date))) {
     return { status: "OUT_OF_ORDER", isDirty: room.isDirty, isDueOut, current: checkedIn };

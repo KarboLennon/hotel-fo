@@ -1,4 +1,5 @@
 import { addDays, isValid, parseISO, startOfDay } from "date-fns";
+import type { Prisma } from "@prisma/client";
 import { db } from "@/server/db";
 import { deriveRoomStatus, matchesFilter, type DerivedRoomState } from "@/server/services/room-status";
 import { formatFolioNumber, formatReservationNumber } from "@/server/services/numbering";
@@ -24,11 +25,15 @@ const roomNum = (n: string) => Number(n) || 0;
 export async function getDashboard(date: Date) {
   const day = startOfDay(date);
   const next = addDays(day, 1);
+  const today = startOfDay(new Date());
+  // On today and in the past an in-house stay still holds the room even past its
+  // departure (overstay). On a future day only stays that run past that day matter.
+  const checkedIn: Prisma.ReservationWhereInput = day <= today ? { status: "CHECKED_IN" } : { status: "CHECKED_IN", departure: { gt: day } };
   const rooms = await db.room.findMany({
     include: {
       roomType: true,
       reservations: {
-        where: { OR: [{ status: "CHECKED_IN" }, { status: "RESERVED", arrival: { lt: next }, departure: { gt: day } }] },
+        where: { OR: [checkedIn, { status: "RESERVED", arrival: { lt: next }, departure: { gt: day } }] },
         include: { guest: true, rateType: true, source: true, folio: { include: { lines: true } } },
       },
       outOfOrders: { where: { fromDate: { lt: next }, OR: [{ toDate: null }, { toDate: { gt: day } }] } },
@@ -38,7 +43,7 @@ export async function getDashboard(date: Date) {
   const rows: RoomRow[] = rooms
     .sort((a, b) => roomNum(a.number) - roomNum(b.number))
     .map((room) => {
-      const state = deriveRoomStatus(room, room.reservations, room.outOfOrders, day);
+      const state = deriveRoomStatus(room, room.reservations, room.outOfOrders, day, today);
       const r = state.current ? room.reservations.find((x) => x.id === state.current!.id) : undefined;
       return {
         id: room.id, number: room.number, floor: room.floor, typeName: room.roomType.name, state,
