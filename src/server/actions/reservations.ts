@@ -53,6 +53,23 @@ export async function saveReservation(raw: ReservationInput, id?: string): Promi
       .map(([itemId, qty]) => ({ itemId, qty }));
 
     const saved = await db.$transaction(async (tx) => {
+      // Project lock order: Room → Reservation. We don't yet know whether the stay is locked
+      // (that decision needs a locked re-read below), so lock every Room row this save could
+      // touch up front: the room the reservation is currently in (if editing) and the room
+      // being requested, if different. Lock them in a deterministic (sorted) order so two
+      // concurrent saves swapping guests between the same pair of rooms can't deadlock. Only
+      // then lock the Reservation row itself, and re-read it under both locks.
+      const head = id ? await tx.reservation.findUnique({ where: { id }, select: { roomId: true } }) : null;
+      if (id && !head) throw new NotFoundError();
+
+      const roomIds = head && head.roomId !== room.id ? [head.roomId, room.id].sort() : [room.id];
+      for (const rid of roomIds) {
+        await tx.$queryRaw`SELECT "id" FROM "Room" WHERE "id" = ${rid} FOR UPDATE`;
+      }
+      if (id) {
+        await tx.$queryRaw`SELECT "id" FROM "Reservation" WHERE "id" = ${id} FOR UPDATE`;
+      }
+
       const existing = id ? await tx.reservation.findUnique({ where: { id } }) : null;
       if (id && !existing) throw new NotFoundError();
       if (existing && existing.status !== "RESERVED" && existing.status !== "CHECKED_IN") throw new ClosedError();
@@ -60,11 +77,7 @@ export async function saveReservation(raw: ReservationInput, id?: string): Promi
       // lines for the stored stay. Editing stay / rate / room / source / special requests
       // would desync the folio, so those inputs are ignored and the stored values kept.
       const stayLocked = existing?.status === "CHECKED_IN";
-      const lockedRoomId = stayLocked ? existing.roomId : room.id;
 
-      // Project lock order: Room → Reservation. Lock the room row first so concurrent saves
-      // for the same room serialize their availability checks before the reservation update.
-      await tx.$queryRaw`SELECT "id" FROM "Room" WHERE "id" = ${lockedRoomId} FOR UPDATE`;
       if (!stayLocked) {
         const { reservations, ooo } = await roomWindows(tx, room.id);
         if (!isRoomAvailable(arrival, departure, reservations, ooo, id)) throw new RoomUnavailableError();
@@ -99,13 +112,13 @@ export async function saveReservation(raw: ReservationInput, id?: string): Promi
       }
       return res;
     });
-    revalidatePath("/"); revalidatePath("/reservations"); revalidatePath(`/reservations/${saved.id}`);
+    revalidatePath("/"); revalidatePath("/reservations"); revalidatePath(`/reservations/${saved.id}`); revalidatePath("/guest-ledger");
     return ok({ id: saved.id });
   } catch (e) {
-    logError("saveReservation", e);
     if (e instanceof NotFoundError) return fail("Reservasi tidak ditemukan");
     if (e instanceof ClosedError) return fail("Reservasi tidak bisa diubah lagi");
     if (e instanceof RoomUnavailableError) return fail("Kamar tidak tersedia pada tanggal tersebut", { roomId: ["Kamar sudah terisi / out of order pada tanggal ini"] });
+    logError("saveReservation", e);
     return fail("Gagal menyimpan reservasi");
   }
 }

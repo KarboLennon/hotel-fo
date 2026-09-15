@@ -60,11 +60,11 @@ export async function transitionReservation(id: string, action: Exclude<Reservat
     revalidatePath("/"); revalidatePath("/reservations"); revalidatePath(`/reservations/${id}`); revalidatePath("/guest-ledger");
     return ok(null);
   } catch (e) {
-    logError("transitionReservation", e);
     if (e instanceof NotFoundError) return fail("Reservasi tidak ditemukan");
     if (e instanceof FolioMissingError) return fail("Folio tidak ditemukan");
     if (e instanceof InvalidTransitionError) return fail(e.message);
     if (e instanceof RoomUnavailableError) return fail("Kamar tidak tersedia untuk check-in (bentrok reservasi lain atau out of order)");
+    logError("transitionReservation", e);
     return fail("Gagal memproses reservasi");
   }
 }

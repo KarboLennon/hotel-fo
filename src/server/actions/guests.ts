@@ -50,8 +50,8 @@ export async function deleteGuest(id: string): Promise<ActionResult> {
     revalidatePath("/guests");
     return ok(null);
   } catch (e) {
-    logError("deleteGuest", e);
     if (e instanceof HasReservationsError) return fail("Tamu punya riwayat reservasi, tidak bisa dihapus");
+    logError("deleteGuest", e);
     return fail("Gagal menghapus tamu");
   }
 }

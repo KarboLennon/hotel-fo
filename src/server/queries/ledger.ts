@@ -16,7 +16,9 @@ export async function getLedger(f: LedgerFilter) {
     where: {
       AND: [
         STATUS[f.lookingFor],
-        // departure is exclusive: a stay that left on the "from" day does not overlap the window.
+        // departure is compared against the "from" day at 00:00, and departures carry the
+        // check-out time-of-day, so a stay departing on the "from" day is still included
+        // (intended: it was in-house that morning).
         { arrival: { lt: to }, departure: { gt: from } },
         f.guestName ? { guest: { OR: [{ lastName: { contains: f.guestName, mode: "insensitive" } }, { firstName: { contains: f.guestName, mode: "insensitive" } }] } } : {},
         f.marketPlaceId ? { marketPlaceId: f.marketPlaceId } : {}, f.sourceId ? { sourceId: f.sourceId } : {}, f.roomTypeId ? { room: { roomTypeId: f.roomTypeId } } : {},

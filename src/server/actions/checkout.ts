@@ -42,9 +42,9 @@ export async function addFolioLine(reservationId: string, raw: z.infer<typeof li
     revalidatePath(`/reservations/${reservationId}`); revalidatePath(`/reservations/${reservationId}/checkout`); revalidatePath("/guest-ledger"); revalidatePath("/");
     return ok(null);
   } catch (e) {
-    logError("addFolioLine", e);
     if (e instanceof NotFoundError) return fail("Folio tidak ditemukan");
     if (e instanceof ClosedError) return fail("Reservasi sudah ditutup");
+    logError("addFolioLine", e);
     return fail("Gagal menyimpan pembayaran");
   }
 }
@@ -71,10 +71,10 @@ export async function settleReservation(id: string): Promise<ActionResult> {
     revalidatePath("/"); revalidatePath("/reservations"); revalidatePath(`/reservations/${id}`); revalidatePath("/guest-ledger");
     return ok(null);
   } catch (e) {
-    logError("settleReservation", e);
     if (e instanceof NotFoundError) return fail("Reservasi tidak ditemukan");
     if (e instanceof InvalidTransitionError) return fail(e.message);
     if (e instanceof BalanceNotZeroError) return fail(`Balance masih ${e.balance.toFixed(2)}. Lunasi dulu sebelum check out.`);
+    logError("settleReservation", e);
     return fail("Gagal memproses check out");
   }
 }

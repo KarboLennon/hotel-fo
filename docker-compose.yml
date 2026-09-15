@@ -16,7 +16,6 @@ services:
       DATABASE_URL: postgresql://hotel:hotel@db:5432/hotel_fo?schema=public
       AUTH_SECRET: ${AUTH_SECRET}
       AUTH_TRUST_HOST: "true"
-      ADMIN_PASSWORD: ${ADMIN_PASSWORD}
       TZ: Asia/Jakarta
     depends_on:
       db: { condition: service_healthy }

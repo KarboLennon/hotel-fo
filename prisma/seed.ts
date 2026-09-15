@@ -11,6 +11,10 @@ function adminPassword(): string {
 }
 
 async function main() {
+  // Compute (and validate) the admin password before writing anything, so a misconfigured
+  // production environment fails fast instead of partially seeding.
+  const passwordHash = await bcrypt.hash(adminPassword(), 10);
+
   await db.setting.createMany({
     data: [
       { key: "taxPercent", value: "21" },
@@ -56,8 +60,8 @@ async function main() {
   }
 
   await db.user.upsert({
-    where: { email: "admin@hotel.local" }, update: {},
-    create: { name: "Admin", email: "admin@hotel.local", role: "ADMIN", passwordHash: await bcrypt.hash(adminPassword(), 10) },
+    where: { email: "admin@hotel.local" }, update: { passwordHash },
+    create: { name: "Admin", email: "admin@hotel.local", role: "ADMIN", passwordHash },
   });
   // Demo receptionist with a well-known password: development and e2e only.
   if (process.env.NODE_ENV !== "production") {

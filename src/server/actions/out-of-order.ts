@@ -38,10 +38,10 @@ export async function markOutOfOrder(raw: OutOfOrderInput): Promise<ActionResult
       await tx.outOfOrder.create({ data: { roomId, fromDate, toDate, remark, createdById: user.id } });
     });
   } catch (e) {
-    logError("markOutOfOrder", e);
     if (e instanceof NotFoundError) return fail("Kamar tidak ditemukan");
     if (e instanceof ClashError) return fail("Kamar punya reservasi aktif pada rentang tanggal tersebut", { roomId: ["Ada reservasi aktif"] });
     if (e instanceof OooClashError) return fail("Kamar sudah out of order pada rentang tersebut", { roomId: ["Sudah out of order"] });
+    logError("markOutOfOrder", e);
     return fail("Gagal menyimpan out of order");
   }
   paths.forEach((p) => revalidatePath(p));
