@@ -1,0 +1,283 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  RECEPTIONIST
+}
+
+enum Title {
+  MR
+  MRS
+  DR
+  MISS
+}
+
+enum IdType {
+  KTP
+  SIM
+  PASSPORT
+}
+
+enum Gender {
+  MALE
+  FEMALE
+}
+
+enum GuestType {
+  REGULAR
+  REPEAT
+  VIP
+}
+
+enum ReservationStatus {
+  RESERVED
+  CHECKED_IN
+  CHECKED_OUT
+  CANCELLED
+  NO_SHOW
+  VOID
+}
+
+enum SettlementMethod {
+  CASH
+  CREDIT
+}
+
+enum CardType {
+  CASH
+  VISA
+  MASTERCARD
+}
+
+enum FolioLineKind {
+  ROOM_CHARGE
+  TAX
+  EXTRA
+  SPECIAL_REQUEST
+  PAYMENT
+  DEPOSIT
+}
+
+model User {
+  id           String   @id @default(cuid())
+  name         String
+  email        String   @unique
+  passwordHash String
+  role         Role     @default(RECEPTIONIST)
+  createdAt    DateTime @default(now())
+
+  bookedReservations     Reservation[] @relation("BookedBy")
+  checkedInReservations  Reservation[] @relation("CheckedInBy")
+  checkedOutReservations Reservation[] @relation("CheckedOutBy")
+  outOfOrders            OutOfOrder[]
+}
+
+model Setting {
+  key   String @id
+  value String
+}
+
+model RoomType {
+  id       String  @id @default(cuid())
+  name     String  @unique
+  baseRate Decimal @db.Decimal(12, 2)
+  rooms    Room[]
+  rates    RateTypeRoomTypeRate[]
+}
+
+model Room {
+  id         String   @id @default(cuid())
+  number     String   @unique
+  floor      String
+  roomTypeId String
+  roomType   RoomType @relation(fields: [roomTypeId], references: [id])
+  isDirty    Boolean  @default(false)
+
+  reservations Reservation[]
+  outOfOrders  OutOfOrder[]
+  messages     GuestMessage[]
+}
+
+model RateType {
+  id           String                 @id @default(cuid())
+  name         String                 @unique
+  rates        RateTypeRoomTypeRate[]
+  reservations Reservation[]
+}
+
+model RateTypeRoomTypeRate {
+  rateTypeId String
+  roomTypeId String
+  rate       Decimal  @db.Decimal(12, 2)
+  rateType   RateType @relation(fields: [rateTypeId], references: [id])
+  roomType   RoomType @relation(fields: [roomTypeId], references: [id])
+  @@id([rateTypeId, roomTypeId])
+}
+
+model MarketPlace {
+  id             String        @id @default(cuid())
+  name           String        @unique
+  requiresSource Boolean       @default(false)
+  reservations   Reservation[]
+}
+
+model Source {
+  id           String        @id @default(cuid())
+  name         String        @unique
+  reservations Reservation[]
+}
+
+model SpecialRequestItem {
+  id           String                      @id @default(cuid())
+  name         String                      @unique
+  price        Decimal                     @db.Decimal(12, 2)
+  reservations ReservationSpecialRequest[]
+}
+
+model Guest {
+  id           String    @id @default(cuid())
+  title        Title     @default(MR)
+  firstName    String
+  lastName     String
+  address      String
+  city         String
+  postal       String
+  country      String
+  email        String
+  phone        String?
+  idType       IdType
+  idNumber     String
+  idExpMonth   Int?
+  idExpYear    Int?
+  idLifetime   Boolean   @default(false)
+  nationality  String
+  state        String
+  birthDate    DateTime?
+  birthCity    String
+  birthState   String?
+  birthCountry String?
+  gender       Gender?
+  guestType    GuestType @default(REGULAR)
+  occupation   String?
+  photoUrl     String?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  reservations Reservation[]
+  messages     GuestMessage[]
+  @@index([lastName, firstName])
+}
+
+model Reservation {
+  id               String            @id @default(cuid())
+  seq              Int               @unique @default(autoincrement())
+  guestId          String
+  guest            Guest             @relation(fields: [guestId], references: [id])
+  roomId           String
+  room             Room              @relation(fields: [roomId], references: [id])
+  rateTypeId       String
+  rateType         RateType          @relation(fields: [rateTypeId], references: [id])
+  marketPlaceId    String
+  marketPlace      MarketPlace       @relation(fields: [marketPlaceId], references: [id])
+  sourceId         String?
+  source           Source?           @relation(fields: [sourceId], references: [id])
+  arrival          DateTime
+  departure        DateTime
+  nights           Int
+  adults           Int               @default(1)
+  children         Int               @default(0)
+  infants          Int               @default(0)
+  status           ReservationStatus @default(RESERVED)
+  settlementMethod SettlementMethod  @default(CASH)
+  cardType         CardType?
+  cardLast4        String?
+  cardExpiry       String?
+  voucherNo        String?
+  notes            String?
+  ratePerNight     Decimal           @db.Decimal(12, 2)
+  bookedById       String
+  bookedBy         User              @relation("BookedBy", fields: [bookedById], references: [id])
+  checkedInById    String?
+  checkedInBy      User?             @relation("CheckedInBy", fields: [checkedInById], references: [id])
+  checkedOutById   String?
+  checkedOutBy     User?             @relation("CheckedOutBy", fields: [checkedOutById], references: [id])
+  checkedInAt      DateTime?
+  checkedOutAt     DateTime?
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+
+  folio           Folio?
+  specialRequests ReservationSpecialRequest[]
+  @@index([roomId, arrival, departure])
+  @@index([status])
+}
+
+model Folio {
+  id            String      @id @default(cuid())
+  seq           Int         @unique @default(autoincrement())
+  reservationId String      @unique
+  reservation   Reservation @relation(fields: [reservationId], references: [id], onDelete: Cascade)
+  lines         FolioLine[]
+  createdAt     DateTime    @default(now())
+}
+
+model FolioLine {
+  id          String        @id @default(cuid())
+  folioId     String
+  folio       Folio         @relation(fields: [folioId], references: [id], onDelete: Cascade)
+  kind        FolioLineKind
+  description String
+  amount      Decimal       @db.Decimal(12, 2)
+  date        DateTime      @default(now())
+}
+
+model ReservationSpecialRequest {
+  reservationId String
+  itemId        String
+  qty           Int                @default(1)
+  reservation   Reservation        @relation(fields: [reservationId], references: [id], onDelete: Cascade)
+  item          SpecialRequestItem @relation(fields: [itemId], references: [id])
+  @@id([reservationId, itemId])
+}
+
+model OutOfOrder {
+  id          String    @id @default(cuid())
+  roomId      String
+  room        Room      @relation(fields: [roomId], references: [id])
+  fromDate    DateTime
+  toDate      DateTime?
+  remark      String
+  createdById String
+  createdBy   User      @relation(fields: [createdById], references: [id])
+  createdAt   DateTime  @default(now())
+  @@index([roomId, fromDate])
+}
+
+model GuestMessage {
+  id               String   @id @default(cuid())
+  roomId           String
+  room             Room     @relation(fields: [roomId], references: [id])
+  guestId          String
+  guest            Guest    @relation(fields: [guestId], references: [id])
+  fromName         String
+  company          String?
+  phone            String?
+  message          String
+  telephoned       Boolean  @default(false)
+  returnedYourCall Boolean  @default(false)
+  pleaseCall       Boolean  @default(false)
+  willCallAgain    Boolean  @default(false)
+  cameToSeeYou     Boolean  @default(false)
+  wantToSeeYou     Boolean  @default(false)
+  rush             Boolean  @default(false)
+  special          Boolean  @default(false)
+  delivered        Boolean  @default(false)
+  createdAt        DateTime @default(now())
+}
