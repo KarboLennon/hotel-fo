@@ -47,27 +47,34 @@ test("login → reserve → check in → check out → ledger", async ({ page })
   await expect(page.getByText(`Test E2E${stamp}`)).toBeVisible();
 
   await page.goto("/");
-  const card = page.locator("div.relative").filter({ has: page.locator(`a:has-text("${roomNumber}")`) });
+  const card = page
+    .locator("div.relative")
+    .filter({ has: page.locator(".display", { hasText: new RegExp(`^${roomNumber}$`) }) })
+    .first();
   await expect(card.getByRole("button", { name: "Mark clean" })).toBeVisible();
 });
 
 test.afterAll(async () => {
   const prisma = new PrismaClient();
   try {
-    const guests = await prisma.guest.findMany({ where: { lastName: { startsWith: "E2E" } } });
-    const guestIds = guests.map((g) => g.id);
-    if (guestIds.length) {
-      const reservations = await prisma.reservation.findMany({ where: { guestId: { in: guestIds } } });
-      const reservationIds = reservations.map((r) => r.id);
-      if (reservationIds.length) {
-        await prisma.folioLine.deleteMany({ where: { folio: { reservationId: { in: reservationIds } } } });
-        await prisma.folio.deleteMany({ where: { reservationId: { in: reservationIds } } });
-        await prisma.reservation.deleteMany({ where: { id: { in: reservationIds } } });
+    try {
+      const guests = await prisma.guest.findMany({ where: { lastName: { startsWith: "E2E" } } });
+      const guestIds = guests.map((g) => g.id);
+      if (guestIds.length) {
+        const reservations = await prisma.reservation.findMany({ where: { guestId: { in: guestIds } } });
+        const reservationIds = reservations.map((r) => r.id);
+        if (reservationIds.length) {
+          await prisma.folioLine.deleteMany({ where: { folio: { reservationId: { in: reservationIds } } } });
+          await prisma.folio.deleteMany({ where: { reservationId: { in: reservationIds } } });
+          await prisma.reservation.deleteMany({ where: { id: { in: reservationIds } } });
+        }
+        await prisma.guest.deleteMany({ where: { id: { in: guestIds } } });
       }
-      await prisma.guest.deleteMany({ where: { id: { in: guestIds } } });
-    }
-    if (roomNumber) {
-      await prisma.room.updateMany({ where: { number: roomNumber }, data: { isDirty: false } });
+      if (roomNumber) {
+        await prisma.room.updateMany({ where: { number: roomNumber }, data: { isDirty: false } });
+      }
+    } catch (err) {
+      console.warn("e2e cleanup failed:", err);
     }
   } finally {
     await prisma.$disconnect();

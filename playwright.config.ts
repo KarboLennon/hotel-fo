@@ -1,4 +1,8 @@
 import { defineConfig } from "@playwright/test";
+import { loadEnvConfig } from "@next/env";
+
+loadEnvConfig(process.cwd());
+
 export default defineConfig({
   testDir: "e2e",
   timeout: 60_000,
