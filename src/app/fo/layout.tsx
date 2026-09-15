@@ -6,7 +6,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   return (
     <>
       <TopNav user={user} />
-      <main className="px-6 py-5">{children}</main>
+      <main className="px-4 sm:px-6 py-5">{children}</main>
     </>
   );
 }

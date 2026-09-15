@@ -24,7 +24,7 @@ export default async function LandingPage() {
   ]);
   return (
     <>
-      <section className="relative bg-ink text-paper px-6 pt-24 pb-32 overflow-hidden">
+      <section className="relative bg-ink text-paper px-4 sm:px-6 pt-16 sm:pt-24 pb-24 sm:pb-32 overflow-hidden">
         <Image src="/images/hero.jpg" alt="" fill priority sizes="100vw" className="object-cover object-center" />
         {/* Ink overlay keeps the headline legible over any photo while staying on the token palette. */}
         <div className="absolute inset-0 bg-ink/60" aria-hidden />
@@ -37,11 +37,11 @@ export default async function LandingPage() {
         </div>
       </section>
       {/* Pulled up over the hero; needs its own stacking context so the hero photo cannot paint over it. */}
-      <section className="relative z-10 px-6 -mt-12">
+      <section className="relative z-10 px-4 sm:px-6 -mt-12">
         <div className="max-w-5xl mx-auto"><SearchForm sources={sources} /></div>
       </section>
 
-      <section id="rooms" className="px-6 py-14">
+      <section id="rooms" className="px-4 sm:px-6 py-10 sm:py-14">
         <div className="max-w-5xl mx-auto">
           <p className="label text-accent-2">Tipe kamar</p>
           <h2 className="display text-3xl mb-6">Pilihan kamar</h2>
@@ -64,7 +64,7 @@ export default async function LandingPage() {
         </div>
       </section>
 
-      <section id="how" className="px-6 pb-16">
+      <section id="how" className="px-4 sm:px-6 pb-12 sm:pb-16">
         <div className="max-w-5xl mx-auto border-t border-line pt-10">
           <p className="label text-accent-2">Cara memesan</p>
           <h2 className="display text-3xl mb-6">Empat langkah menuju kamar Anda</h2>

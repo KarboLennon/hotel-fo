@@ -24,7 +24,7 @@ export default async function RoomsPage({ searchParams }: { searchParams: Promis
   const types = await getRoomTypeAvailability(stay);
   const qs = new URLSearchParams({ arrival: search.arrival, departure: search.departure, adults: String(search.adults), children: String(search.children), source: search.source });
   return (
-    <div className="max-w-5xl mx-auto px-6 py-8 space-y-6">
+    <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-6">
       <SearchForm sources={sources} initial={search} compact />
       <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-6">
         <div>
