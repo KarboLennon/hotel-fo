@@ -53,27 +53,27 @@ server dev pada port 3000. Pastikan port itu bebas sebelum dan sesudah menjalank
 
 ## Deploy (Docker)
 
-1. Siapkan env di host: `AUTH_SECRET` dan `ADMIN_PASSWORD` (wajib saat production —
-   seed akan gagal bila kosong).
+1. Di server, buat `.env` di folder project berisi `AUTH_SECRET` dan `ADMIN_PASSWORD`
+   (dibaca otomatis oleh `docker compose`):
 
    ```bash
-   export AUTH_SECRET=$(openssl rand -base64 32)
-   export ADMIN_PASSWORD='ganti-password-ini'
+   printf 'AUTH_SECRET=%s\nADMIN_PASSWORD=ganti-password-ini\n' "$(openssl rand -base64 32)" > .env
    ```
 
 2. Build dan jalankan: `docker compose up -d --build`
-   Container app menjalankan `prisma migrate deploy` lalu `node server.js`, jadi skema
-   selalu ikut naik. Kedua service memakai `restart: unless-stopped`.
+   Service `migrate` menjalankan `prisma migrate deploy` lalu selesai; `app` baru start setelah
+   migrasi sukses. `db` dan `app` memakai `restart: unless-stopped`.
 
-3. Seed sekali saja setelah container jalan. Image runtime tidak memuat `tsx`, jadi seed
-   dijalankan dari host terhadap database yang sama (publish port `5432` pada service `db`
-   atau jalankan di jaringan yang sama):
+3. Seed sekali setelah container jalan (user admin, data master, dan data demo untuk praktik):
 
    ```bash
-   DATABASE_URL='postgresql://hotel:hotel@localhost:5432/hotel_fo?schema=public' \
-   ADMIN_PASSWORD="$ADMIN_PASSWORD" NODE_ENV=production \
-   npx prisma db seed
+   docker compose run --rm seed
    ```
 
-   Seed bersifat idempotent (upsert / `skipDuplicates`), aman diulang. Di production
-   hanya user admin yang dibuat; resepsionis demo tidak ikut.
+   Tambahkan `-e NODE_ENV=production` sebelum `seed` untuk melewati data demo dan akun
+   resepsionis demo. Seed aman diulang: data yang sudah ada dilewati, password admin ikut
+   diperbarui dari `ADMIN_PASSWORD`.
+
+4. Update versi: `git pull && docker compose up -d --build` (migrasi baru ikut diterapkan).
+
+Aplikasi tersedia di `http://<ip-server>:3000` (booking tamu) dan `/login` untuk Front Office.

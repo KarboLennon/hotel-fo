@@ -1,3 +1,5 @@
+x-db-url: &db_url postgresql://hotel:hotel@db:5432/hotel_fo?schema=public
+
 services:
   db:
     image: postgres:16-alpine
@@ -8,16 +10,41 @@ services:
     restart: unless-stopped
     volumes: ["pgdata:/var/lib/postgresql/data"]
     healthcheck: { test: ["CMD-SHELL", "pg_isready -U hotel"], interval: 5s, retries: 10 }
+
+  # Applies prisma/migrations, then exits. `app` waits for it to finish successfully.
+  migrate:
+    build: { context: ., target: build }
+    command: ["npx", "prisma", "migrate", "deploy"]
+    environment:
+      DATABASE_URL: *db_url
+    depends_on:
+      db: { condition: service_healthy }
+    restart: "no"
+
   app:
     build: .
     restart: unless-stopped
     ports: ["3000:3000"]
     environment:
-      DATABASE_URL: postgresql://hotel:hotel@db:5432/hotel_fo?schema=public
+      DATABASE_URL: *db_url
       AUTH_SECRET: ${AUTH_SECRET}
       AUTH_TRUST_HOST: "true"
       TZ: Asia/Jakarta
     depends_on:
       db: { condition: service_healthy }
+      migrate: { condition: service_completed_successfully }
+
+  # One-off: `docker compose run --rm seed` (add `-e NODE_ENV=production` to skip the demo data).
+  seed:
+    build: { context: ., target: build }
+    command: ["npx", "prisma", "db", "seed"]
+    environment:
+      DATABASE_URL: *db_url
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD}
+      TZ: Asia/Jakarta
+    depends_on:
+      db: { condition: service_healthy }
+    profiles: ["seed"]
+
 volumes:
   pgdata:
