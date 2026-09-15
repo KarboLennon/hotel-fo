@@ -21,7 +21,9 @@ RUN --mount=type=cache,target=/app/.next/cache npx prisma generate && npm run bu
 
 FROM node:20-alpine AS run
 WORKDIR /app
-ENV NODE_ENV=production TZ=Asia/Jakarta
+# Next's standalone server binds to $HOSTNAME, which Docker sets to the container id; without this
+# it would not listen on loopback and any in-container health check would be refused.
+ENV NODE_ENV=production TZ=Asia/Jakarta HOSTNAME=0.0.0.0 PORT=3000
 RUN addgroup -S app && adduser -S app -G app
 COPY --from=build --chown=app:app /app/.next/standalone ./
 COPY --from=build --chown=app:app /app/.next/static ./.next/static
