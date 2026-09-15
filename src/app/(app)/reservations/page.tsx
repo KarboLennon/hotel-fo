@@ -18,7 +18,7 @@ export default async function ReservationListPage({ searchParams }: { searchPara
       <PageHeader eyebrow={`${rows.length} record(s)`} title="Reservation List"
         actions={<>
           <form className="flex gap-2" action="/reservations"><input type="hidden" name="filter" value={filter} /><Input name="q" defaultValue={q} placeholder="Search res. no, last name, room, voucher" className="w-72" /><Button variant="ghost" type="submit">Search</Button></form>
-          <Link href="/reservations/new"><Button type="button">New</Button></Link>
+          <Link href="/reservations/new" className="inline-flex focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-accent"><Button type="button">New</Button></Link>
         </>} />
       <div className="flex gap-4 mb-3">
         {FILTERS.map(([f, label]) => (
