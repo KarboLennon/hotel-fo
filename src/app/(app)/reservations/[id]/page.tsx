@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { PageHeader } from "@/components/ui/page-header";
 import { ReservationForm } from "@/components/reservation/reservation-form";
+import { StatusActions } from "@/components/reservation/status-actions";
 import { detailToFormValues } from "@/components/reservation/defaults";
 import { getReservationOptions } from "@/server/queries/options";
 import { getReservationDetail } from "@/server/queries/reservations";
@@ -15,7 +16,7 @@ export default async function ReservationDetailPage({ params }: { params: Promis
   return (
     <>
       <PageHeader eyebrow={`Reservation ${detail.number}`} title={`Room ${detail.room.number} · ${detail.room.roomType.name}`}
-        actions={<span className={`label ${RESERVATION_STATUS_TEXT[detail.status]}`}>{RESERVATION_STATUS_LABEL[detail.status]}</span>} />
+        actions={<><span className={`label ${RESERVATION_STATUS_TEXT[detail.status]} mr-4`}>{RESERVATION_STATUS_LABEL[detail.status]}</span><StatusActions id={detail.id} status={detail.status} /></>} />
       <ReservationForm options={options} defaultValues={detailToFormValues(detail)} reservationId={detail.id} locked={locked}
         docs={{ number: detail.number, folioNumber: detail.folioNumber }} />
       <footer className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-2 text-[11px] text-muted border-t border-line pt-3">
