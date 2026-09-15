@@ -26,31 +26,33 @@ export async function saveReservation(raw: ReservationInput, id?: string): Promi
   if (!parsed.success) return zodFail(parsed.error);
   const input = parsed.data;
 
-  const [room, marketPlace, rateType] = await Promise.all([
-    db.room.findUnique({ where: { id: input.roomId }, include: { roomType: true } }),
-    db.marketPlace.findUnique({ where: { id: input.marketPlaceId } }),
-    db.rateType.findUnique({ where: { id: input.rateTypeId } }),
-  ]);
-  if (!room) return fail("Kamar tidak ditemukan", { roomId: ["Pilih kamar"] });
-  if (!marketPlace) return fail("Market place tidak ditemukan", { marketPlaceId: ["Pilih market place"] });
-  if (!rateType) return fail("Rate type tidak ditemukan", { rateTypeId: ["Pilih rate type"] });
-  if (marketPlace.requiresSource && !input.sourceId) return fail("Source wajib diisi", { sourceId: ["Pilih source"] });
-  if (room.roomTypeId !== input.roomTypeId) return fail("Kamar tidak sesuai room type", { roomId: ["Pilih kamar sesuai room type"] });
-
-  const rateRow = await db.rateTypeRoomTypeRate.findUnique({ where: { rateTypeId_roomTypeId: { rateTypeId: input.rateTypeId, roomTypeId: room.roomTypeId } } });
-  const ratePerNight = rateRow ? Number(rateRow.rate) : Number(room.roomType.baseRate);
-  const arrival = combineDateTime(input.arrivalDate, input.arrivalTime);
-  const departure = combineDateTime(input.departureDate, input.departureTime);
-  const nights = nightsFromDates(arrival, departure);
-  const cardLast4 = input.settlementMethod === "CREDIT" ? input.cardNumber?.replace(/\D/g, "").slice(-4) || null : null;
-
   try {
+    const [room, marketPlace, rateType] = await Promise.all([
+      db.room.findUnique({ where: { id: input.roomId }, include: { roomType: true } }),
+      db.marketPlace.findUnique({ where: { id: input.marketPlaceId } }),
+      db.rateType.findUnique({ where: { id: input.rateTypeId } }),
+    ]);
+    if (!room) return fail("Kamar tidak ditemukan", { roomId: ["Pilih kamar"] });
+    if (!marketPlace) return fail("Market place tidak ditemukan", { marketPlaceId: ["Pilih market place"] });
+    if (!rateType) return fail("Rate type tidak ditemukan", { rateTypeId: ["Pilih rate type"] });
+    if (marketPlace.requiresSource && !input.sourceId) return fail("Source wajib diisi", { sourceId: ["Pilih source"] });
+    if (room.roomTypeId !== input.roomTypeId) return fail("Kamar tidak sesuai room type", { roomId: ["Pilih kamar sesuai room type"] });
+
+    const rateRow = await db.rateTypeRoomTypeRate.findUnique({ where: { rateTypeId_roomTypeId: { rateTypeId: input.rateTypeId, roomTypeId: room.roomTypeId } } });
+    const ratePerNight = rateRow ? Number(rateRow.rate) : Number(room.roomType.baseRate);
+    const arrival = combineDateTime(input.arrivalDate, input.arrivalTime);
+    const departure = combineDateTime(input.departureDate, input.departureTime);
+    const nights = nightsFromDates(arrival, departure);
+    const cardLast4 = input.settlementMethod === "CREDIT" ? input.cardNumber?.replace(/\D/g, "").slice(-4) || null : null;
+
     const saved = await db.$transaction(async (tx) => {
       if (id) {
         const existing = await tx.reservation.findUnique({ where: { id } });
         if (!existing) throw new Error("Reservasi tidak ditemukan");
         if (existing.status !== "RESERVED" && existing.status !== "CHECKED_IN") throw new Error("Reservasi tidak bisa diubah lagi");
       }
+      // Lock the room row so concurrent saves for the same room serialize their availability checks.
+      await tx.$queryRaw`SELECT "id" FROM "Room" WHERE "id" = ${room.id} FOR UPDATE`;
       const { reservations, ooo } = await roomWindows(tx, room.id);
       if (!isRoomAvailable(arrival, departure, reservations, ooo, id)) throw new RoomUnavailableError();
 
