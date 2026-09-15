@@ -36,7 +36,7 @@ export function DataTable<T>({ columns, data, onRowClick, rowClassName, emptyTex
                 }
                 return (
                   <th key={h.id} className={cn("label text-left font-semibold border-b border-line select-none cursor-pointer hover:text-ink focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-accent", pad)}
-                    role="button" tabIndex={0} aria-sort={ariaSort}
+                    tabIndex={0} aria-sort={ariaSort}
                     onClick={sortHandler}
                     onKeyDown={(e) => {
                       if (e.key === "Enter") { sortHandler?.(e); }
