@@ -24,7 +24,7 @@ export function StayTimeline({ data, start, days, params }: { data: Data; start:
       </div>
       <div className="border border-line overflow-x-auto">
         <div className="grid min-w-[900px]" style={{ gridTemplateColumns: cols }}>
-          <div className="label px-3 py-2 border-b border-r border-line bg-paper-2 sticky left-0">Room</div>
+          <div className="label px-3 py-2 border-b border-r border-line bg-paper-2 sticky left-0 z-10">Room</div>
           {dates.map((d) => (
             <div key={d.toISOString()} className={cn("px-1 py-2 border-b border-line bg-paper-2 text-center text-[10px] text-muted", isSameDay(d, today) && "text-accent-2 font-semibold")}>
               <div>{format(d, "d")}</div><div className="label text-[8px]">{format(d, "EEE")}</div>
@@ -32,7 +32,7 @@ export function StayTimeline({ data, start, days, params }: { data: Data; start:
           ))}
           {data.rooms.map((room) => (
             <div key={room.id} className="contents">
-              <div className="px-3 py-1.5 border-b border-r border-line-soft sticky left-0 bg-paper">
+              <div className="px-3 py-1.5 border-b border-r border-line-soft sticky left-0 z-10 bg-paper">
                 <span className="display text-[13px]">{room.number}</span> <span className="text-[10px] text-muted">{room.typeName}</span>
               </div>
               <div className="relative border-b border-line-soft grid" style={{ gridColumn: `2 / ${days + 2}`, gridTemplateColumns: `repeat(${days}, minmax(52px, 1fr))` }}>
