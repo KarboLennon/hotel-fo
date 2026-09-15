@@ -48,3 +48,4 @@ playwright-report/
 
 # ensure .env.example stays trackable despite the .env* rule above
 !.env.example
+docs/superpowers/

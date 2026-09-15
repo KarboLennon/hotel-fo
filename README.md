@@ -3,7 +3,7 @@
 Aplikasi Front Office hotel: dashboard kamar (Room / List / Stay View), reservasi
 (reserve → check in → check out), folio & pembayaran, out of order, guest ledger,
 database tamu, dan guest messages. Spesifikasi lengkap ada di
-`docs/superpowers/specs/2026-09-15-hotel-front-office-design.md`.
+`docs/design.md`.
 
 ## Stack
 
