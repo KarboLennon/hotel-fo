@@ -1,8 +1,10 @@
+# syntax=docker/dockerfile:1.7
 FROM node:20-alpine AS deps
 WORKDIR /app
 COPY package.json package-lock.json ./
 COPY prisma ./prisma
-RUN npm ci
+# Cache mount keeps the npm download cache between builds, so a lock-file change is cheap.
+RUN --mount=type=cache,target=/root/.npm npm ci
 
 # Full toolchain image: also used by the `migrate` and `seed` compose services (Prisma CLI + tsx need
 # the complete node_modules, which the slim runtime image deliberately does not carry).
@@ -13,7 +15,9 @@ COPY . .
 ENV NEXT_TELEMETRY_DISABLED=1 TZ=Asia/Jakarta
 # Prisma needs a URL to generate the client; the build never connects to it.
 ENV DATABASE_URL="postgresql://build:build@localhost:5432/build"
-RUN npx prisma generate && npm run build
+# Next keeps its compiler cache in .next/cache; persisting it across builds cuts rebuild time
+# roughly in half on the 1-vCPU server (the build output itself still lands in the image).
+RUN --mount=type=cache,target=/app/.next/cache npx prisma generate && npm run build
 
 FROM node:20-alpine AS run
 WORKDIR /app
