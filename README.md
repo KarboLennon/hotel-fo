@@ -57,7 +57,7 @@ server dev pada port 3000. Pastikan port itu bebas sebelum dan sesudah menjalank
    (dibaca otomatis oleh `docker compose`):
 
    ```bash
-   printf 'AUTH_SECRET=%s\nADMIN_PASSWORD=ganti-password-ini\n' "$(openssl rand -base64 32)" > .env
+   printf 'AUTH_SECRET=%s\nADMIN_PASSWORD=ganti-password-ini\nDOMAIN=namadomain.id\n' "$(openssl rand -base64 32)" > .env
    ```
 
 2. Build dan jalankan: `docker compose up -d --build`
@@ -76,4 +76,6 @@ server dev pada port 3000. Pastikan port itu bebas sebelum dan sesudah menjalank
 
 4. Update versi: `git pull && docker compose up -d --build` (migrasi baru ikut diterapkan).
 
-Aplikasi tersedia di `http://<ip-server>:3000` (booking tamu) dan `/login` untuk Front Office.
+Caddy (service `caddy`) menyediakan HTTPS otomatis untuk `DOMAIN` dan `www.DOMAIN`: record A
+keduanya harus mengarah ke server dan port 80/443 terbuka. Aplikasi: `https://DOMAIN` (booking
+tamu) dan `https://DOMAIN/login` (Front Office).

@@ -24,7 +24,8 @@ services:
   app:
     build: .
     restart: unless-stopped
-    ports: ["3000:3000"]
+    # Not published directly: Caddy terminates HTTPS and proxies to app:3000.
+    expose: ["3000"]
     environment:
       DATABASE_URL: *db_url
       AUTH_SECRET: ${AUTH_SECRET}
@@ -33,6 +34,19 @@ services:
     depends_on:
       db: { condition: service_healthy }
       migrate: { condition: service_completed_successfully }
+
+  # HTTPS reverse proxy with automatic Let's Encrypt certificates for ${DOMAIN} and www.${DOMAIN}.
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports: ["80:80", "443:443"]
+    environment:
+      DOMAIN: ${DOMAIN}
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on: [app]
 
   # One-off: `docker compose run --rm seed` (add `-e NODE_ENV=production` to skip the demo data).
   seed:
@@ -48,3 +62,5 @@ services:
 
 volumes:
   pgdata:
+  caddy_data:
+  caddy_config:
