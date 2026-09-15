@@ -19,7 +19,7 @@ export function TopNav({ user }: { user: { name: string; role: string } }) {
         <span>{formatDate(new Date())}</span>
         <span className="text-ink">{user.name}</span>
         <form action={async () => { "use server"; await signOut({ redirectTo: "/login" }); }}>
-          <button className="label hover:text-ink focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-accent">Sign out</button>
+          <button className="label hover:text-ink focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-accent active:translate-y-px">Sign out</button>
         </form>
       </div>
     </nav>

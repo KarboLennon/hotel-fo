@@ -16,13 +16,36 @@ export function DataTable<T>({ columns, data, onRowClick, rowClassName, emptyTex
         <thead className="sticky top-0 bg-paper-2">
           {table.getHeaderGroups().map((hg) => (
             <tr key={hg.id}>
-              {hg.headers.map((h) => (
-                <th key={h.id} className={cn("label text-left font-semibold border-b border-line select-none", pad, h.column.getCanSort() && "cursor-pointer hover:text-ink")}
-                  onClick={h.column.getToggleSortingHandler()}>
-                  {flexRender(h.column.columnDef.header, h.getContext())}
-                  {{ asc: " ▲", desc: " ▼" }[h.column.getIsSorted() as string] ?? null}
-                </th>
-              ))}
+              {hg.headers.map((h) => {
+                const canSort = h.column.getCanSort();
+                const sortHandler = h.column.getToggleSortingHandler();
+                const sorted = h.column.getIsSorted();
+                const ariaSort = sorted === "asc" ? "ascending" : sorted === "desc" ? "descending" : "none";
+                const headerContent = (
+                  <>
+                    {flexRender(h.column.columnDef.header, h.getContext())}
+                    {{ asc: " ▲", desc: " ▼" }[sorted as string] ?? null}
+                  </>
+                );
+                if (!canSort) {
+                  return (
+                    <th key={h.id} className={cn("label text-left font-semibold border-b border-line select-none", pad)}>
+                      {headerContent}
+                    </th>
+                  );
+                }
+                return (
+                  <th key={h.id} className={cn("label text-left font-semibold border-b border-line select-none cursor-pointer hover:text-ink focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-accent", pad)}
+                    role="button" tabIndex={0} aria-sort={ariaSort}
+                    onClick={sortHandler}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") { sortHandler?.(e); }
+                      else if (e.key === " ") { e.preventDefault(); sortHandler?.(e); }
+                    }}>
+                    {headerContent}
+                  </th>
+                );
+              })}
             </tr>
           ))}
         </thead>
