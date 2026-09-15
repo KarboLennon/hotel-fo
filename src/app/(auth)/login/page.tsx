@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import { LoginForm } from "./login-form";
 import { SCHOOL_NAME } from "@/lib/constants";
 
@@ -15,6 +16,9 @@ export default function LoginPage() {
         </div>
         <h1 className="display text-3xl mb-6">Sign in</h1>
         <LoginForm />
+        <p className="mt-6 text-[11px] text-muted">
+          Mau jadi tamu? <Link href="/" className="text-accent-2 underline focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-accent">Buka halaman booking</Link>
+        </p>
       </div>
     </main>
   );

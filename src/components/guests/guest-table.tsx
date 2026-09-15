@@ -12,5 +12,5 @@ const columns: ColumnDef<GuestListRow, unknown>[] = [
 
 export function GuestTable({ rows }: { rows: GuestListRow[] }) {
   const router = useRouter();
-  return <DataTable columns={columns} data={rows} onRowClick={(r) => router.push(`/guests/${r.id}`)} />;
+  return <DataTable columns={columns} data={rows} onRowClick={(r) => router.push(`/fo/guests/${r.id}`)} />;
 }

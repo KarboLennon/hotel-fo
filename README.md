@@ -27,6 +27,17 @@ Struktur: logika murni di `src/server/services/` (tanpa Prisma, diuji unit), que
    `fo@hotel.local` / `fo12345` khusus non-production)
 6. Jalankan: `npm run dev` → http://localhost:3000
 
+## Halaman
+
+| Route | Siapa | Isi |
+| --- | --- | --- |
+| `/` | Tamu (tanpa login) | Simulasi booking engine: pilih tanggal, tamu, sumber booking (website / Traveloka / Tiket.com / Booking.com / Agoda) → pilih kamar → isi data → pembayaran → nomor reservasi RESN |
+| `/book/rooms`, `/book/details`, `/book/confirmation/[id]` | Tamu | Langkah 2–4 alur booking |
+| `/login` | Staff | Masuk ke Front Office |
+| `/fo` | Staff (login) | Dashboard Room / List / Stay View, Reservation, Guest Ledger, Guests, Messages, Out of Order |
+
+Booking dari halaman tamu dicatat atas nama user sistem `web@hotel.local` (tidak bisa login) dengan market place **Website** atau **Travel Agent + source** sesuai pilihan, dan langsung muncul di `/fo` sebagai *Reserved*.
+
 ## Test
 
 ```bash

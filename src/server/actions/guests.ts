@@ -31,7 +31,7 @@ export async function saveGuest(raw: GuestInput, id?: string): Promise<ActionRes
   if (!parsed.success) return zodFail(parsed.error);
   try {
     const g = id ? await db.guest.update({ where: { id }, data: guestData(parsed.data) }) : await db.guest.create({ data: guestData(parsed.data) });
-    revalidatePath("/guests");
+    revalidatePath("/fo/guests");
     return ok({ id: g.id });
   } catch (e) {
     logError("saveGuest", e);
@@ -47,7 +47,7 @@ export async function deleteGuest(id: string): Promise<ActionResult> {
       if (count > 0) throw new HasReservationsError();
       await tx.guest.delete({ where: { id } });
     });
-    revalidatePath("/guests");
+    revalidatePath("/fo/guests");
     return ok(null);
   } catch (e) {
     if (e instanceof HasReservationsError) return fail("Tamu punya riwayat reservasi, tidak bisa dihapus");

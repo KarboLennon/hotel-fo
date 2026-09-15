@@ -11,7 +11,7 @@ const STATUS_LABEL: Record<RoomRow["state"]["status"], string> = { VACANT: "Vaca
 
 export function RoomCard({ room, date }: { room: RoomRow; date: string }) {
   const { state, reservation } = room;
-  const href = reservation ? `/reservations/${reservation.id}` : state.status === "VACANT" ? `/reservations/new?roomId=${room.id}&date=${date}` : "/out-of-order";
+  const href = reservation ? `/fo/reservations/${reservation.id}` : state.status === "VACANT" ? `/fo/reservations/new?roomId=${room.id}&date=${date}` : "/fo/out-of-order";
   const showMarkClean = state.isDirty && state.status === "VACANT";
   return (
     // The card is a plain box; the Link covers the info area and the Mark clean button (when shown)

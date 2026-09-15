@@ -11,7 +11,7 @@ export async function markRoomClean(roomId: string): Promise<ActionResult> {
     const room = await db.room.findUnique({ where: { id: roomId } });
     if (!room) return fail("Kamar tidak ditemukan");
     await db.room.update({ where: { id: roomId }, data: { isDirty: false } });
-    revalidatePath("/");
+    revalidatePath("/fo");
     return ok(null);
   } catch (e) {
     logError("markRoomClean", e);

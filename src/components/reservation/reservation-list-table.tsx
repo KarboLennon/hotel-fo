@@ -21,5 +21,5 @@ const columns: ColumnDef<ReservationListRow, unknown>[] = [
 
 export function ReservationListTable({ rows }: { rows: ReservationListRow[] }) {
   const router = useRouter();
-  return <DataTable columns={columns} data={rows} onRowClick={(r) => router.push(`/reservations/${r.id}`)} rowClassName={(r) => RESERVATION_STATUS_TEXT[r.status]} />;
+  return <DataTable columns={columns} data={rows} onRowClick={(r) => router.push(`/fo/reservations/${r.id}`)} rowClassName={(r) => RESERVATION_STATUS_TEXT[r.status]} />;
 }

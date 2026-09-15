@@ -21,12 +21,12 @@ export function StatusActions({ id, status }: { id: string; status: ReservationS
   return (
     <div className="no-print flex items-center gap-2 flex-wrap justify-end">
       {error && <span className="text-[12px] text-danger" role="alert">{error}</span>}
-      <Link href={`/reservations/${id}/print`} className="inline-flex focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-accent"><Button type="button" variant="ghost">Print</Button></Link>
+      <Link href={`/fo/reservations/${id}/print`} className="inline-flex focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-accent"><Button type="button" variant="ghost">Print</Button></Link>
       {actions.includes("VOID") && <Button type="button" variant="danger" loading={pending} onClick={() => run("VOID")}>Void</Button>}
       {actions.includes("NO_SHOW") && <Button type="button" variant="ghost" loading={pending} onClick={() => run("NO_SHOW")}>No Show</Button>}
       {actions.includes("CANCEL") && <Button type="button" variant="ghost" loading={pending} onClick={() => run("CANCEL")}>Cancel</Button>}
       {actions.includes("CHECK_IN") && <Button type="button" loading={pending} onClick={() => run("CHECK_IN")}>Check In</Button>}
-      {actions.includes("CHECK_OUT") && <Link href={`/reservations/${id}/checkout`} className="inline-flex focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-accent"><Button type="button">Check Out</Button></Link>}
+      {actions.includes("CHECK_OUT") && <Link href={`/fo/reservations/${id}/checkout`} className="inline-flex focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-accent"><Button type="button">Check Out</Button></Link>}
     </div>
   );
 }

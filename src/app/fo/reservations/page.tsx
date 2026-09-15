@@ -17,12 +17,12 @@ export default async function ReservationListPage({ searchParams }: { searchPara
     <>
       <PageHeader eyebrow={`${rows.length} record(s)`} title="Reservation List"
         actions={<>
-          <form className="flex gap-2" action="/reservations"><input type="hidden" name="filter" value={filter} /><Input name="q" defaultValue={q} placeholder="Search res. no, last name, room, voucher" className="w-72" /><Button variant="ghost" type="submit">Search</Button></form>
-          <Link href="/reservations/new" className="inline-flex focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-accent"><Button type="button">New</Button></Link>
+          <form className="flex gap-2" action="/fo/reservations"><input type="hidden" name="filter" value={filter} /><Input name="q" defaultValue={q} placeholder="Search res. no, last name, room, voucher" className="w-72" /><Button variant="ghost" type="submit">Search</Button></form>
+          <Link href="/fo/reservations/new" className="inline-flex focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-accent"><Button type="button">New</Button></Link>
         </>} />
       <div className="flex gap-4 mb-3">
         {FILTERS.map(([f, label]) => (
-          <Link key={f} href={`/reservations?filter=${f}${q ? `&q=${encodeURIComponent(q)}` : ""}`} aria-current={filter === f ? "page" : undefined}
+          <Link key={f} href={`/fo/reservations?filter=${f}${q ? `&q=${encodeURIComponent(q)}` : ""}`} aria-current={filter === f ? "page" : undefined}
             className={cn("label flex items-center gap-1.5 hover:text-ink focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-accent", filter === f && "text-ink")}>
             <span className={cn("size-2.5 border border-line", filter === f && "bg-accent border-accent")} aria-hidden />{label}
           </Link>

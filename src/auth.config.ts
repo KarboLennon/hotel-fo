@@ -7,8 +7,11 @@ export const authConfig = {
   callbacks: {
     authorized({ auth, request }) {
       const loggedIn = !!auth?.user;
-      const onLogin = request.nextUrl.pathname.startsWith("/login");
-      if (onLogin) return loggedIn ? Response.redirect(new URL("/", request.nextUrl)) : true;
+      const path = request.nextUrl.pathname;
+      // Public booking simulation (guest side) needs no login; the Front Office app under /fo does.
+      if (path === "/" || path.startsWith("/book")) return true;
+      const onLogin = path.startsWith("/login");
+      if (onLogin) return loggedIn ? Response.redirect(new URL("/fo", request.nextUrl)) : true;
       return loggedIn;
     },
     jwt({ token, user }) {

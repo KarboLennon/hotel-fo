@@ -13,8 +13,8 @@ export default async function GuestsPage({ searchParams }: { searchParams: Promi
   const rows = await listGuests(q);
   return (
     <>
-      <PageHeader eyebrow={`${rows.length} record(s)`} title="Guest Database" actions={<Link href="/guests/new" className="inline-flex focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-accent"><Button type="button">New</Button></Link>} />
-      <form action="/guests" className="grid grid-cols-2 md:grid-cols-6 gap-2 items-end border border-line p-3 mb-4">
+      <PageHeader eyebrow={`${rows.length} record(s)`} title="Guest Database" actions={<Link href="/fo/guests/new" className="inline-flex focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-accent"><Button type="button">New</Button></Link>} />
+      <form action="/fo/guests" className="grid grid-cols-2 md:grid-cols-6 gap-2 items-end border border-line p-3 mb-4">
         <Field label="Last name"><Input name="lastName" defaultValue={q.lastName ?? ""} /></Field>
         <Field label="First name"><Input name="firstName" defaultValue={q.firstName ?? ""} /></Field>
         <Field label="ID number"><Input name="idNumber" defaultValue={q.idNumber ?? ""} /></Field>

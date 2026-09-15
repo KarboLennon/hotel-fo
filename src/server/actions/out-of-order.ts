@@ -9,7 +9,7 @@ import { outOfOrderSchema, type OutOfOrderInput } from "@/lib/validation/out-of-
 import { combineDateTime } from "@/server/services/dates";
 import { rangesOverlap } from "@/server/services/availability";
 
-const paths = ["/", "/out-of-order"];
+const paths = ["/fo", "/fo/out-of-order"];
 
 class ClashError extends Error {}
 class OooClashError extends Error {}

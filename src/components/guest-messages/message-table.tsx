@@ -27,7 +27,7 @@ export function MessageTable({ rows, inHouse, undeliveredOnly }: { rows: GuestMe
   return (
     <>
       <div className="flex items-center justify-between mb-3">
-        <Checkbox label="Show Undelivered message Only" checked={undeliveredOnly} onChange={(e) => router.push(e.target.checked ? "/guest-messages?undelivered=1" : "/guest-messages")} />
+        <Checkbox label="Show Undelivered message Only" checked={undeliveredOnly} onChange={(e) => router.push(e.target.checked ? "/fo/guest-messages?undelivered=1" : "/fo/guest-messages")} />
         <Button type="button" onClick={() => setEditing("new")}>New</Button>
       </div>
       <DataTable columns={columns} data={rows} onRowClick={(r) => setEditing(r)} rowClassName={(r) => (r.delivered ? "text-muted" : undefined)} />

@@ -28,7 +28,7 @@ export function RoomListTable({ rooms, date }: { rooms: RoomRow[]; date: string 
   return (
     <div className="mt-4">
       <DataTable columns={columns} data={rooms}
-        onRowClick={(r) => router.push(r.reservation ? `/reservations/${r.reservation.id}` : `/reservations/new?roomId=${r.id}&date=${date}`)}
+        onRowClick={(r) => router.push(r.reservation ? `/fo/reservations/${r.reservation.id}` : `/fo/reservations/new?roomId=${r.id}&date=${date}`)}
         rowClassName={(r) => (r.state.status === "OCCUPIED" ? "bg-paper-2" : undefined)} />
     </div>
   );

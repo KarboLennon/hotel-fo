@@ -70,5 +70,5 @@ export function buildDashboardHref(patch: Record<string, string | undefined>, cu
   const p = new URLSearchParams();
   for (const [k, v] of Object.entries({ ...current, ...patch })) if (v) p.set(k, v);
   const q = p.toString();
-  return q ? `/?${q}` : "/";
+  return q ? `/fo?${q}` : "/fo";
 }

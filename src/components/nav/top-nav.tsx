@@ -6,15 +6,15 @@ import { formatDate } from "@/lib/format";
 import { SCHOOL_NAME, SCHOOL_SHORT } from "@/lib/constants";
 
 const LINKS = [
-  ["/", "Dashboard"], ["/reservations", "Reservation"], ["/guest-ledger", "Guest Ledger"],
-  ["/guests", "Guests"], ["/guest-messages", "Messages"], ["/out-of-order", "Out of Order"],
+  ["/fo", "Dashboard"], ["/fo/reservations", "Reservation"], ["/fo/guest-ledger", "Guest Ledger"],
+  ["/fo/guests", "Guests"], ["/fo/guest-messages", "Messages"], ["/fo/out-of-order", "Out of Order"],
 ] as const;
 
 export function TopNav({ user }: { user: { name: string; role: string } }) {
   return (
     <nav className="no-print flex items-center justify-between gap-6 px-6 h-14 border-b border-line-soft bg-paper">
       <div className="flex items-center gap-7">
-        <Link href="/" className="flex items-center gap-2.5 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-accent" title={SCHOOL_NAME}>
+        <Link href="/fo" className="flex items-center gap-2.5 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-accent" title={SCHOOL_NAME}>
           <Image src="/logo.png" alt={SCHOOL_NAME} width={36} height={36} priority />
           <span className="leading-tight">
             <span className="display text-base block">{SCHOOL_SHORT} <span className="text-accent">FO</span></span>

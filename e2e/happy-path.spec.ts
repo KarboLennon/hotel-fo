@@ -12,7 +12,7 @@ test("login → reserve → check in → check out → ledger", async ({ page })
   await expect(page.getByRole("heading", { name: "Room View" })).toBeVisible();
 
   // pick the first vacant room card (link to /reservations/new)
-  const vacant = page.locator('a[href^="/reservations/new"]').first();
+  const vacant = page.locator('a[href^="/fo/reservations/new"]').first();
   roomNumber = (await vacant.locator(".display").first().textContent())!.trim();
   await vacant.click();
   await expect(page.getByRole("heading", { name: new RegExp(`Room ${roomNumber}`) })).toBeVisible();
@@ -43,10 +43,10 @@ test("login → reserve → check in → check out → ledger", async ({ page })
   await page.click('button:has-text("Settle & Check Out")');
   await expect(page.getByText("Checked Out", { exact: true })).toBeVisible();
 
-  await page.goto("/guest-ledger?lookingFor=checkedout");
+  await page.goto("/fo/guest-ledger?lookingFor=checkedout");
   await expect(page.getByText(`Test E2E${stamp}`)).toBeVisible();
 
-  await page.goto("/");
+  await page.goto("/fo");
   const card = page
     .locator("div.relative")
     .filter({ has: page.locator(".display", { hasText: new RegExp(`^${roomNumber}$`) }) })

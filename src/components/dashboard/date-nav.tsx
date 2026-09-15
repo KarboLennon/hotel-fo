@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 export function DateNav({ date }: { date: string }) {
   const router = useRouter();
   const sp = useSearchParams();
-  const go = (d: string) => { const p = new URLSearchParams(sp.toString()); p.set("date", d); router.push(`/?${p}`); };
+  const go = (d: string) => { const p = new URLSearchParams(sp.toString()); p.set("date", d); router.push(`/fo?${p}`); };
   const shift = (n: number) => go(format(addDays(parseISO(date), n), "yyyy-MM-dd"));
   return (
     <div className="flex items-center gap-1">

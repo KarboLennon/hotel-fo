@@ -19,5 +19,5 @@ const columns: ColumnDef<LedgerRow, unknown>[] = [
 
 export function LedgerTable({ rows }: { rows: LedgerRow[] }) {
   const router = useRouter();
-  return <DataTable columns={columns} data={rows} onRowClick={(r) => router.push(`/reservations/${r.id}`)} />;
+  return <DataTable columns={columns} data={rows} onRowClick={(r) => router.push(`/fo/reservations/${r.id}`)} />;
 }

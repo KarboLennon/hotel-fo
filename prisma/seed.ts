@@ -1,5 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
+import crypto from "node:crypto";
 import { seedDemo } from "./seed-demo";
 
 const db = new PrismaClient();
@@ -50,7 +51,7 @@ async function main() {
     }
   }
 
-  for (const [name, requiresSource] of [["Domestic", false], ["Walk In", false], ["Taxi", false], ["Travel Agent", true]] as const) {
+  for (const [name, requiresSource] of [["Domestic", false], ["Walk In", false], ["Taxi", false], ["Travel Agent", true], ["Website", false]] as const) {
     await db.marketPlace.upsert({ where: { name }, update: {}, create: { name, requiresSource } });
   }
   for (const name of ["Traveloka", "Tiket.com", "Booking.com", "Agoda"]) {
@@ -63,6 +64,11 @@ async function main() {
   await db.user.upsert({
     where: { email: "admin@hotel.local" }, update: { passwordHash },
     create: { name: "Admin", email: "admin@hotel.local", role: "ADMIN", passwordHash },
+  });
+  // System user that owns reservations made through the public booking page (cannot log in: random password).
+  await db.user.upsert({
+    where: { email: "web@hotel.local" }, update: {},
+    create: { name: "Website Booking", email: "web@hotel.local", role: "RECEPTIONIST", passwordHash: await bcrypt.hash(crypto.randomUUID(), 10) },
   });
   // Demo receptionist with a well-known password: development and e2e only.
   if (process.env.NODE_ENV !== "production") {

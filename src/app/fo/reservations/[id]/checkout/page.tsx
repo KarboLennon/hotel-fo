@@ -10,7 +10,7 @@ export default async function CheckoutPage({ params }: { params: Promise<{ id: s
   const { id } = await params;
   const d = await getReservationDetail(id);
   if (!d) notFound();
-  if (d.status !== "CHECKED_IN") redirect(`/reservations/${id}`);
+  if (d.status !== "CHECKED_IN") redirect(`/fo/reservations/${id}`);
   return (
     <>
       <PageHeader eyebrow={`Check Out · ${d.number} · Folio ${d.folioNumber}`} title={`${d.guest.firstName} ${d.guest.lastName} · Room ${d.room.number}`} />

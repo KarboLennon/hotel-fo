@@ -38,7 +38,7 @@ export function StayTimeline({ data, start, days, params }: { data: Data; start:
               <div className="relative border-b border-line-soft grid" style={{ gridColumn: `2 / ${days + 2}`, gridTemplateColumns: `repeat(${days}, minmax(52px, 1fr))` }}>
                 {dates.map((d, i) => <div key={i} className={cn("border-r border-line-soft min-h-8", isSameDay(d, today) && "bg-paper-2")} />)}
                 {room.bars.map((b) => (
-                  <Link key={b.reservationId} href={`/reservations/${b.reservationId}`} title={b.guestName}
+                  <Link key={b.reservationId} href={`/fo/reservations/${b.reservationId}`} title={b.guestName}
                     className={cn("absolute top-1 bottom-1 mx-0.5 px-1.5 text-[10px] text-paper truncate leading-6 hover:opacity-90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ink", BAR[b.status])}
                     style={{ left: `${(b.startIdx / days) * 100}%`, width: `calc(${((b.endIdx - b.startIdx) / days) * 100}% - 4px)` }}>
                     {b.guestName}

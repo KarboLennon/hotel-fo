@@ -26,9 +26,9 @@ export function GuestForm({ defaultValues, guestId }: { defaultValues: GuestInpu
   const submit = (data: GuestInput) => start(async () => {
     const r = await saveGuest(data, guestId);
     if (!r.ok) { setMessage(r.message); for (const [k, m] of Object.entries(r.fieldErrors ?? {})) if (m?.[0]) setError(k as FieldPath<GuestInput>, { message: m[0] }); return; }
-    router.push("/guests"); router.refresh();
+    router.push("/fo/guests"); router.refresh();
   });
-  const remove = () => { if (!guestId || !confirm("Hapus tamu ini?")) return; start(async () => { const r = await deleteGuest(guestId); if (r.ok) { router.push("/guests"); router.refresh(); } else setMessage(r.message); }); };
+  const remove = () => { if (!guestId || !confirm("Hapus tamu ini?")) return; start(async () => { const r = await deleteGuest(guestId); if (r.ok) { router.push("/fo/guests"); router.refresh(); } else setMessage(r.message); }); };
   return (
     <form onSubmit={handleSubmit(submit)} className="grid grid-cols-1 lg:grid-cols-2 gap-4 max-w-5xl" noValidate>
       <Panel title="Guest Information">
@@ -73,7 +73,7 @@ export function GuestForm({ defaultValues, guestId }: { defaultValues: GuestInpu
         {message && <p className="text-[12px] text-danger" role="alert">{message}</p>}
         <div className="flex justify-end gap-2">
           {guestId && <Button type="button" variant="danger" onClick={remove} loading={pending}>Delete</Button>}
-          <Button type="button" variant="ghost" onClick={() => router.push("/guests")}>Close</Button>
+          <Button type="button" variant="ghost" onClick={() => router.push("/fo/guests")}>Close</Button>
           <Button type="submit" loading={pending}>Save</Button>
         </div>
       </div>

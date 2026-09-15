@@ -112,7 +112,7 @@ export async function saveReservation(raw: ReservationInput, id?: string): Promi
       }
       return res;
     });
-    revalidatePath("/"); revalidatePath("/reservations"); revalidatePath(`/reservations/${saved.id}`); revalidatePath("/guest-ledger");
+    revalidatePath("/fo"); revalidatePath("/fo/reservations"); revalidatePath(`/fo/reservations/${saved.id}`); revalidatePath("/fo/guest-ledger");
     return ok({ id: saved.id });
   } catch (e) {
     if (e instanceof NotFoundError) return fail("Reservasi tidak ditemukan");

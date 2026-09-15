@@ -39,7 +39,7 @@ export async function addFolioLine(reservationId: string, raw: z.infer<typeof li
       if (r.status !== "RESERVED" && r.status !== "CHECKED_IN") throw new ClosedError();
       await tx.folioLine.create({ data: { folioId: r.folio.id, kind: parsed.data.kind, description: parsed.data.description, amount: round2(signed) } });
     });
-    revalidatePath(`/reservations/${reservationId}`); revalidatePath(`/reservations/${reservationId}/checkout`); revalidatePath("/guest-ledger"); revalidatePath("/");
+    revalidatePath(`/fo/reservations/${reservationId}`); revalidatePath(`/fo/reservations/${reservationId}/checkout`); revalidatePath("/fo/guest-ledger"); revalidatePath("/fo");
     return ok(null);
   } catch (e) {
     if (e instanceof NotFoundError) return fail("Folio tidak ditemukan");
@@ -68,7 +68,7 @@ export async function settleReservation(id: string): Promise<ActionResult> {
       await tx.reservation.update({ where: { id }, data: { status, checkedOutById: user.id, checkedOutAt: new Date() } });
       await tx.room.update({ where: { id: r.roomId }, data: { isDirty: true } });
     });
-    revalidatePath("/"); revalidatePath("/reservations"); revalidatePath(`/reservations/${id}`); revalidatePath("/guest-ledger");
+    revalidatePath("/fo"); revalidatePath("/fo/reservations"); revalidatePath(`/fo/reservations/${id}`); revalidatePath("/fo/guest-ledger");
     return ok(null);
   } catch (e) {
     if (e instanceof NotFoundError) return fail("Reservasi tidak ditemukan");

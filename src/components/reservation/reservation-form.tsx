@@ -116,7 +116,7 @@ export function ReservationForm({ options, defaultValues, reservationId, mode = 
       for (const [k, msgs] of Object.entries(res.fieldErrors ?? {})) if (msgs?.length) setError(k as FieldPath<ReservationInput>, { message: msgs[0] });
       return;
     }
-    router.push(`/reservations/${res.data.id}`);
+    router.push(`/fo/reservations/${res.data.id}`);
     router.refresh();
   });
 

@@ -7,7 +7,7 @@ import type { ReservationOptions } from "@/server/queries/options";
 
 export function LedgerFilters({ f, options }: { f: LedgerFilter; options: ReservationOptions }) {
   return (
-    <form action="/guest-ledger" className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-2 items-end border border-line p-3 mb-4">
+    <form action="/fo/guest-ledger" className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-2 items-end border border-line p-3 mb-4">
       <Field label="From date"><Input type="date" name="from" defaultValue={f.from} /></Field>
       <Field label="To date"><Input type="date" name="to" defaultValue={f.to} /></Field>
       <Field label="Guest name"><Input name="guestName" defaultValue={f.guestName ?? ""} /></Field>

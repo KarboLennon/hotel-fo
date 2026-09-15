@@ -57,7 +57,7 @@ export async function transitionReservation(id: string, action: Exclude<Reservat
       await tx.reservation.update({ where: { id }, data: { status, checkedInById: user.id, checkedInAt: now } });
     });
 
-    revalidatePath("/"); revalidatePath("/reservations"); revalidatePath(`/reservations/${id}`); revalidatePath("/guest-ledger");
+    revalidatePath("/fo"); revalidatePath("/fo/reservations"); revalidatePath(`/fo/reservations/${id}`); revalidatePath("/fo/guest-ledger");
     return ok(null);
   } catch (e) {
     if (e instanceof NotFoundError) return fail("Reservasi tidak ditemukan");
