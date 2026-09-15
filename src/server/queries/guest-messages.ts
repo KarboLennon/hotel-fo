@@ -13,6 +13,8 @@ export async function listGuestMessages(undeliveredOnly: boolean) {
 export type GuestMessageRow = Awaited<ReturnType<typeof listGuestMessages>>[number];
 
 export async function getInHouseGuests() {
-  const rows = await db.reservation.findMany({ where: { status: "CHECKED_IN" }, include: { guest: true, room: true }, orderBy: { room: { number: "asc" } } });
-  return rows.map((r) => ({ reservationId: r.id, guestId: r.guestId, roomId: r.roomId, roomNumber: r.room.number, firstName: r.guest.firstName, lastName: r.guest.lastName }));
+  const rows = await db.reservation.findMany({ where: { status: "CHECKED_IN" }, include: { guest: true, room: true } });
+  return rows
+    .map((r) => ({ reservationId: r.id, guestId: r.guestId, roomId: r.roomId, roomNumber: r.room.number, firstName: r.guest.firstName, lastName: r.guest.lastName }))
+    .sort((a, b) => (Number(a.roomNumber) || 0) - (Number(b.roomNumber) || 0));
 }

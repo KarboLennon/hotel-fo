@@ -11,8 +11,16 @@ export async function saveGuestMessage(raw: GuestMessageInput, id?: string): Pro
   if (!parsed.success) return zodFail(parsed.error);
   const data = { ...parsed.data, company: parsed.data.company || null, phone: parsed.data.phone || null };
   try {
-    const inHouse = await db.reservation.findFirst({ where: { guestId: data.guestId, roomId: data.roomId, status: "CHECKED_IN" } });
-    if (!inHouse) return fail("Tamu tidak sedang menginap di kamar tersebut", { guestId: ["Pilih tamu in-house"] });
+    let needsCheck = true;
+    if (id) {
+      const existing = await db.guestMessage.findUnique({ where: { id } });
+      if (!existing) return fail("Pesan tidak ditemukan");
+      needsCheck = existing.guestId !== data.guestId || existing.roomId !== data.roomId;
+    }
+    if (needsCheck) {
+      const inHouse = await db.reservation.findFirst({ where: { guestId: data.guestId, roomId: data.roomId, status: "CHECKED_IN" } });
+      if (!inHouse) return fail("Tamu tidak sedang menginap di kamar tersebut", { guestId: ["Pilih tamu in-house"] });
+    }
     const m = id ? await db.guestMessage.update({ where: { id }, data }) : await db.guestMessage.create({ data });
     revalidatePath("/guest-messages");
     return ok({ id: m.id });
