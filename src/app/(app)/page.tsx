@@ -6,7 +6,9 @@ import { StatusCounters } from "@/components/dashboard/status-counters";
 import { FloorTabs } from "@/components/dashboard/floor-tabs";
 import { RoomGrid } from "@/components/dashboard/room-grid";
 import { RoomListTable } from "@/components/dashboard/room-list-table";
+import { StayTimeline } from "@/components/dashboard/stay-timeline";
 import { getDashboard, parseDateParam } from "@/server/queries/dashboard";
+import { getStayView } from "@/server/queries/stay-view";
 import { matchesFilter } from "@/server/services/room-status";
 import { STATUS_FILTERS, type StatusFilter } from "@/lib/constants";
 
@@ -22,6 +24,8 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
 
   const { rooms, counters, floors } = await getDashboard(date);
   const floor = floors.includes(sp.floor ?? "") ? sp.floor! : floors[0];
+  const days = sp.days === "7" || sp.days === "30" ? Number(sp.days) : 15;
+  const stay = view === "stay" ? await getStayView(date, days) : null;
   const title = view === "list" ? "List View" : view === "stay" ? "Stay View" : "Room View";
 
   return (
@@ -35,7 +39,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
         </>
       )}
       {view === "list" && <RoomListTable rooms={rooms.filter((r) => matchesFilter(r.state, status))} date={dateStr} />}
-      {view === "stay" && <p className="mt-4 text-muted">Stay View — Task 10</p>}
+      {view === "stay" && stay && <StayTimeline data={stay} start={date} days={days} params={params} />}
     </>
   );
 }
