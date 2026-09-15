@@ -75,12 +75,18 @@ export function ReservationForm({ options, defaultValues, reservationId, locked 
     getAvailableRooms(w.roomTypeId, w.arrivalDate, w.departureDate, reservationId).then((list) => {
       if (!alive) return;
       const current = getValues("roomId");
-      const keep = current && (list.some((r) => r.id === current) || current === defaultValues.roomId);
+      const currentRoomType = getValues("roomTypeId");
+      const keep = current && (
+        list.some((r) => r.id === current) ||
+        (current === defaultValues.roomId && currentRoomType === defaultValues.roomTypeId)
+      );
       const currentRoom = options.roomTypes.flatMap((t) => t.rooms).find((r) => r.id === current);
       setRooms(keep && currentRoom && !list.some((r) => r.id === current) ? [currentRoom, ...list] : list);
       if (!keep) setValue("roomId", "");
     });
     return () => { alive = false; };
+    // getValues/setValue/options/reservationId/defaultValues are stable for the component's
+    // lifetime; this effect must only re-run on room type / date changes.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [w.roomTypeId, w.arrivalDate, w.departureDate]);
 
@@ -164,8 +170,8 @@ export function ReservationForm({ options, defaultValues, reservationId, locked 
 
         <Panel title="Settlement Option">
           <div className="flex gap-4 mb-2 text-[12px]">
-            <label className="flex items-center gap-1.5"><input type="radio" value="CASH" {...register("settlementMethod")} className="accent-accent" /> Cash</label>
-            <label className="flex items-center gap-1.5"><input type="radio" value="CREDIT" {...register("settlementMethod")} className="accent-accent" /> Credit Card</label>
+            <label className="flex items-center gap-1.5 cursor-pointer"><input type="radio" value="CASH" {...register("settlementMethod")} className="accent-accent cursor-pointer hover:opacity-80 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-accent" /> Cash</label>
+            <label className="flex items-center gap-1.5 cursor-pointer"><input type="radio" value="CREDIT" {...register("settlementMethod")} className="accent-accent cursor-pointer hover:opacity-80 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-accent" /> Credit Card</label>
           </div>
           {w.settlementMethod === "CREDIT" && (
             <div className="grid grid-cols-2 gap-2">
@@ -200,7 +206,7 @@ export function ReservationForm({ options, defaultValues, reservationId, locked 
           </div>
           <div className="grid grid-cols-2 gap-2 mt-2">
             <Field label="Room type *" error={err("roomTypeId")}>
-              <Select {...register("roomTypeId")}>{options.roomTypes.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}</Select>
+              <Select {...register("roomTypeId", { onChange: () => setValue("roomId", "") })}>{options.roomTypes.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}</Select>
             </Field>
             <Field label="Room *" error={err("roomId")}>
               <Select {...register("roomId")} aria-invalid={!!err("roomId")}>
@@ -222,7 +228,7 @@ export function ReservationForm({ options, defaultValues, reservationId, locked 
         <Panel title="Business Source Settings">
           <div className="grid grid-cols-2 gap-2">
             <Field label="Market place *" error={err("marketPlaceId")}>
-              <Select {...register("marketPlaceId")}>{options.marketPlaces.map((m) => <option key={m.id} value={m.id}>{m.name}</option>)}</Select>
+              <Select {...register("marketPlaceId", { onChange: (e) => { const mp = options.marketPlaces.find((m) => m.id === e.target.value); if (!mp?.requiresSource) setValue("sourceId", undefined); } })}>{options.marketPlaces.map((m) => <option key={m.id} value={m.id}>{m.name}</option>)}</Select>
             </Field>
             {marketPlace?.requiresSource && (
               <Field label="Source *" error={err("sourceId")}>
