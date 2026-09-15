@@ -21,8 +21,10 @@ export function RoomCard({ room, date }: { room: RoomRow; date: string }) {
           <div className="display text-base leading-tight">{room.number}</div>
           <div className="text-[10px] text-muted">{room.typeName}</div>
         </div>
-        <div className="flex items-end justify-between gap-1">
+        {/* When the Mark clean button is shown (absolutely positioned bottom-right), reserve its width so text never sits under it. */}
+        <div className={cn("flex items-end justify-between gap-1", showMarkClean && "pr-[84px]")}>
           {reservation ? <span className="text-[11px] truncate">{reservation.guestName}</span>
+            : showMarkClean ? <span className="label text-[8px] text-status-dirty">Vacant · Dirty</span>
             : <span className={cn("label text-[8px]", STATUS_TEXT[state.status])}>{STATUS_LABEL[state.status]}</span>}
           <span className="flex gap-1 items-center">
             {state.isDueOut && <span className="label text-[8px] text-status-reserved">Due out</span>}
