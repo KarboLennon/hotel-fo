@@ -11,6 +11,8 @@ import { guestData } from "@/server/queries/guests";
 import type { Prisma } from "@prisma/client";
 
 class RoomUnavailableError extends Error {}
+class NotFoundError extends Error {}
+class ClosedError extends Error {}
 
 async function roomWindows(tx: Prisma.TransactionClient, roomId: string) {
   const [reservations, ooo] = await Promise.all([
@@ -46,41 +48,57 @@ export async function saveReservation(raw: ReservationInput, id?: string): Promi
     const cardLast4 = input.settlementMethod === "CREDIT" ? input.cardNumber?.replace(/\D/g, "").slice(-4) || null : null;
 
     const saved = await db.$transaction(async (tx) => {
-      if (id) {
-        const existing = await tx.reservation.findUnique({ where: { id } });
-        if (!existing) throw new Error("Reservasi tidak ditemukan");
-        if (existing.status !== "RESERVED" && existing.status !== "CHECKED_IN") throw new Error("Reservasi tidak bisa diubah lagi");
+      const existing = id ? await tx.reservation.findUnique({ where: { id } }) : null;
+      if (id && !existing) throw new NotFoundError();
+      if (existing && existing.status !== "RESERVED" && existing.status !== "CHECKED_IN") throw new ClosedError();
+      // After check-in the folio already holds the room charges, tax and special request
+      // lines for the stored stay. Editing stay / rate / room / source / special requests
+      // would desync the folio, so those inputs are ignored and the stored values kept.
+      const stayLocked = existing?.status === "CHECKED_IN";
+      const lockedRoomId = stayLocked ? existing.roomId : room.id;
+
+      // Project lock order: Room → Reservation. Lock the room row first so concurrent saves
+      // for the same room serialize their availability checks before the reservation update.
+      await tx.$queryRaw`SELECT "id" FROM "Room" WHERE "id" = ${lockedRoomId} FOR UPDATE`;
+      if (!stayLocked) {
+        const { reservations, ooo } = await roomWindows(tx, room.id);
+        if (!isRoomAvailable(arrival, departure, reservations, ooo, id)) throw new RoomUnavailableError();
       }
-      // Lock the room row so concurrent saves for the same room serialize their availability checks.
-      await tx.$queryRaw`SELECT "id" FROM "Room" WHERE "id" = ${room.id} FOR UPDATE`;
-      const { reservations, ooo } = await roomWindows(tx, room.id);
-      if (!isRoomAvailable(arrival, departure, reservations, ooo, id)) throw new RoomUnavailableError();
 
       const guest = input.guestId
         ? await tx.guest.update({ where: { id: input.guestId }, data: guestData(input.guest) })
         : await tx.guest.create({ data: guestData(input.guest) });
 
-      const data = {
-        guestId: guest.id, roomId: room.id, rateTypeId: input.rateTypeId, marketPlaceId: input.marketPlaceId,
-        sourceId: marketPlace.requiresSource ? input.sourceId! : null,
-        arrival, departure, nights, adults: input.adults, children: input.children, infants: input.infants,
+      const editable = {
+        guestId: guest.id,
         settlementMethod: input.settlementMethod, cardType: input.settlementMethod === "CREDIT" && input.cardType ? input.cardType : null,
         cardLast4, cardExpiry: input.settlementMethod === "CREDIT" ? input.cardExpiry || null : null,
-        voucherNo: input.voucherNo || null, notes: input.notes || null, ratePerNight,
+        voucherNo: input.voucherNo || null, notes: input.notes || null,
+      };
+      const data = {
+        ...editable,
+        roomId: room.id, rateTypeId: input.rateTypeId, marketPlaceId: input.marketPlaceId,
+        sourceId: marketPlace.requiresSource ? input.sourceId! : null,
+        arrival, departure, nights, adults: input.adults, children: input.children, infants: input.infants,
+        ratePerNight,
       };
       const res = id
-        ? await tx.reservation.update({ where: { id }, data })
+        ? await tx.reservation.update({ where: { id }, data: stayLocked ? editable : data })
         : await tx.reservation.create({ data: { ...data, bookedById: user.id, folio: { create: {} } } });
 
-      await tx.reservationSpecialRequest.deleteMany({ where: { reservationId: res.id } });
-      if (input.specialRequests.length) {
-        await tx.reservationSpecialRequest.createMany({ data: input.specialRequests.map((s) => ({ reservationId: res.id, itemId: s.itemId, qty: s.qty })) });
+      if (!stayLocked) {
+        await tx.reservationSpecialRequest.deleteMany({ where: { reservationId: res.id } });
+        if (input.specialRequests.length) {
+          await tx.reservationSpecialRequest.createMany({ data: input.specialRequests.map((s) => ({ reservationId: res.id, itemId: s.itemId, qty: s.qty })) });
+        }
       }
       return res;
     });
     revalidatePath("/"); revalidatePath("/reservations"); revalidatePath(`/reservations/${saved.id}`);
     return ok({ id: saved.id });
   } catch (e) {
+    if (e instanceof NotFoundError) return fail("Reservasi tidak ditemukan");
+    if (e instanceof ClosedError) return fail("Reservasi tidak bisa diubah lagi");
     if (e instanceof RoomUnavailableError) return fail("Kamar tidak tersedia pada tanggal tersebut", { roomId: ["Kamar sudah terisi / out of order pada tanggal ini"] });
     return fail(e instanceof Error ? e.message : "Gagal menyimpan reservasi");
   }

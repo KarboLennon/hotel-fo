@@ -28,8 +28,10 @@ export async function addFolioLine(reservationId: string, raw: z.infer<typeof li
   try {
     const signed = parsed.data.kind === "EXTRA" ? parsed.data.amount : -parsed.data.amount;
     await db.$transaction(async (tx) => {
-      // Take the same row lock settleReservation uses, so a concurrent settle and
-      // a concurrent folio write serialize instead of racing on the folio balance.
+      // Project lock order: Room → Reservation. This path never touches Room, so taking
+      // only the Reservation lock is safe — it is the same row lock settleReservation
+      // takes second, so a concurrent settle and a concurrent folio write serialize
+      // instead of racing on the folio balance.
       await tx.$queryRaw`SELECT "id" FROM "Reservation" WHERE "id" = ${reservationId} FOR UPDATE`;
       const r = await tx.reservation.findUnique({ where: { id: reservationId }, include: { folio: true } });
       if (!r?.folio) throw new NotFoundError();
@@ -49,8 +51,12 @@ export async function settleReservation(id: string): Promise<ActionResult> {
   const user = await requireUser();
   try {
     await db.$transaction(async (tx) => {
-      // Lock the reservation row first so the status/balance check below and the
-      // update happen atomically with respect to any concurrent settle or folio write.
+      const head = await tx.reservation.findUnique({ where: { id }, select: { roomId: true } });
+      if (!head) throw new NotFoundError();
+      // Project lock order: Room → Reservation. This settle updates both rows, so it takes
+      // the room lock first and only then the reservation row; the status/balance check
+      // below and the updates are then atomic against any concurrent settle or folio write.
+      await tx.$queryRaw`SELECT "id" FROM "Room" WHERE "id" = ${head.roomId} FOR UPDATE`;
       await tx.$queryRaw`SELECT "id" FROM "Reservation" WHERE "id" = ${id} FOR UPDATE`;
       const r = await tx.reservation.findUnique({ where: { id }, include: { folio: { include: { lines: true } } } });
       if (!r?.folio) throw new NotFoundError();

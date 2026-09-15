@@ -23,10 +23,17 @@ import type { GuestSummary } from "@/server/queries/guests";
 const MONTHS = Array.from({ length: 12 }, (_, i) => i + 1);
 const YEARS = Array.from({ length: 30 }, (_, i) => new Date().getFullYear() + i);
 
-export function ReservationForm({ options, defaultValues, reservationId, locked = false, docs }: {
-  options: ReservationOptions; defaultValues: ReservationInput; reservationId?: string; locked?: boolean;
+export type ReservationFormMode = "editable" | "stayLocked" | "readOnly";
+
+export function ReservationForm({ options, defaultValues, reservationId, mode = "editable", docs }: {
+  options: ReservationOptions; defaultValues: ReservationInput; reservationId?: string; mode?: ReservationFormMode;
   docs?: { number: string; folioNumber: string | null };
 }) {
+  // readOnly: terminal reservation, nothing may change. stayLocked: checked in — the folio
+  // already reflects the stored stay, so stay / rate / source / special request stay frozen
+  // while guest, settlement, remark and voucher remain editable.
+  const readOnly = mode === "readOnly";
+  const stayDisabled = mode !== "editable";
   const router = useRouter();
   const [pending, start] = useTransition();
   const [message, setMessage] = useState<string | null>(null);
@@ -40,7 +47,7 @@ export function ReservationForm({ options, defaultValues, reservationId, locked 
     return initial ? [initial] : [];
   });
   // zodResolver's inferred generic doesn't line up with ReservationInput under zod 4 + resolvers 5; cast is documented here per task brief.
-  const form = useForm<ReservationInput>({ resolver: zodResolver(reservationSchema) as Resolver<ReservationInput>, defaultValues, disabled: locked });
+  const form = useForm<ReservationInput>({ resolver: zodResolver(reservationSchema) as Resolver<ReservationInput>, defaultValues, disabled: readOnly });
   const { register, watch, setValue, getValues, setError, control, handleSubmit, formState: { errors } } = form;
   const sr = useFieldArray({ control, name: "specialRequests" });
 
@@ -116,7 +123,7 @@ export function ReservationForm({ options, defaultValues, reservationId, locked 
     <form onSubmit={handleSubmit(onSubmit)} className="grid grid-cols-1 lg:grid-cols-3 gap-4" noValidate>
       {/* Column 1 */}
       <div className="space-y-4">
-        <Panel title="Guest Information" actions={!locked && <Button type="button" variant="ghost" size="sm" onClick={() => setGuestDialog(true)}><Search size={12} /> Find</Button>}>
+        <Panel title="Guest Information" actions={!readOnly && <Button type="button" variant="ghost" size="sm" onClick={() => setGuestDialog(true)}><Search size={12} /> Find</Button>}>
           <div className="grid grid-cols-[90px_1fr] gap-2 items-start">
             <Field label="Title"><Select {...register("guest.title")}><option value="MR">Mr.</option><option value="MRS">Mrs.</option><option value="DR">Dr.</option><option value="MISS">Miss</option></Select></Field>
             <Field label="Last name *" error={err("guest.lastName")}><Input {...register("guest.lastName")} aria-invalid={!!err("guest.lastName")} /></Field>
@@ -140,12 +147,12 @@ export function ReservationForm({ options, defaultValues, reservationId, locked 
             <Field label="ID type *"><Select {...register("guest.idType")}><option value="KTP">KTP</option><option value="SIM">SIM</option><option value="PASSPORT">Passport</option></Select></Field>
             <Field label="ID number *" error={err("guest.idNumber")}><Input {...register("guest.idNumber")} /></Field>
             <Field label="Exp. month" error={err("guest.idExpMonth")}>
-              <Select {...register("guest.idExpMonth", { setValueAs: (v) => (v === "" ? undefined : Number(v)) })} disabled={locked || w.guest?.idLifetime}>
+              <Select {...register("guest.idExpMonth", { setValueAs: (v) => (v === "" ? undefined : Number(v)) })} disabled={readOnly || w.guest?.idLifetime}>
                 <option value="">—</option>{MONTHS.map((m) => <option key={m} value={m}>{m}</option>)}
               </Select>
             </Field>
             <Field label="Exp. year">
-              <Select {...register("guest.idExpYear", { setValueAs: (v) => (v === "" ? undefined : Number(v)) })} disabled={locked || w.guest?.idLifetime}>
+              <Select {...register("guest.idExpYear", { setValueAs: (v) => (v === "" ? undefined : Number(v)) })} disabled={readOnly || w.guest?.idLifetime}>
                 <option value="">—</option>{YEARS.map((y) => <option key={y} value={y}>{y}</option>)}
               </Select>
             </Field>
@@ -191,35 +198,36 @@ export function ReservationForm({ options, defaultValues, reservationId, locked 
       <div className="space-y-4">
         <Panel title="Stay Information">
           <div className="grid grid-cols-[1fr_1fr_auto] gap-2 items-end">
-            <Field label="Arrival *" error={err("arrivalDate")}><Input type="date" {...register("arrivalDate", { onChange: onArrivalOrNights })} /></Field>
-            <Field label="Time"><Input type="time" {...register("arrivalTime", { onChange: onArrivalOrNights })} /></Field>
+            <Field label="Arrival *" error={err("arrivalDate")}><Input type="date" {...register("arrivalDate", { onChange: onArrivalOrNights })} disabled={stayDisabled} /></Field>
+            <Field label="Time"><Input type="time" {...register("arrivalTime", { onChange: onArrivalOrNights })} disabled={stayDisabled} /></Field>
             <span className="text-[11px] text-muted pb-2 w-20">{arrivalDay}</span>
-            <Field label="Departure *" error={err("departureDate")}><Input type="date" {...register("departureDate", { onChange: onDeparture })} /></Field>
-            <Field label="Time"><Input type="time" {...register("departureTime", { onChange: onDeparture })} /></Field>
+            <Field label="Departure *" error={err("departureDate")}><Input type="date" {...register("departureDate", { onChange: onDeparture })} disabled={stayDisabled} /></Field>
+            <Field label="Time"><Input type="time" {...register("departureTime", { onChange: onDeparture })} disabled={stayDisabled} /></Field>
             <span className="text-[11px] text-muted pb-2 w-20">{departureDay}</span>
           </div>
           <div className="grid grid-cols-4 gap-2 mt-2">
-            <Field label="Nights" error={err("nights")}><Input type="number" min={1} {...register("nights", { valueAsNumber: true, onChange: onArrivalOrNights })} /></Field>
-            <Field label="Adult" error={err("adults")}><Input type="number" min={1} {...register("adults", { valueAsNumber: true })} /></Field>
-            <Field label="Child"><Input type="number" min={0} {...register("children", { valueAsNumber: true })} /></Field>
-            <Field label="Infant" hint="< 3 th"><Input type="number" min={0} {...register("infants", { valueAsNumber: true })} /></Field>
+            <Field label="Nights" error={err("nights")}><Input type="number" min={1} {...register("nights", { valueAsNumber: true, onChange: onArrivalOrNights })} disabled={stayDisabled} /></Field>
+            <Field label="Adult" error={err("adults")}><Input type="number" min={1} {...register("adults", { valueAsNumber: true })} disabled={stayDisabled} /></Field>
+            <Field label="Child"><Input type="number" min={0} {...register("children", { valueAsNumber: true })} disabled={stayDisabled} /></Field>
+            <Field label="Infant" hint="< 3 th"><Input type="number" min={0} {...register("infants", { valueAsNumber: true })} disabled={stayDisabled} /></Field>
           </div>
           <div className="grid grid-cols-2 gap-2 mt-2">
             <Field label="Room type *" error={err("roomTypeId")}>
-              <Select {...register("roomTypeId", { onChange: () => setValue("roomId", "") })}>{options.roomTypes.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}</Select>
+              <Select {...register("roomTypeId", { onChange: () => setValue("roomId", "") })} disabled={stayDisabled}>{options.roomTypes.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}</Select>
             </Field>
             <Field label="Room *" error={err("roomId")}>
-              <Select {...register("roomId")} aria-invalid={!!err("roomId")}>
+              <Select {...register("roomId")} aria-invalid={!!err("roomId")} disabled={stayDisabled}>
                 <option value="">Select room</option>{rooms.map((r) => <option key={r.id} value={r.id}>{r.number}</option>)}
               </Select>
             </Field>
           </div>
+          {stayDisabled && <p className="text-[11px] text-muted mt-2">Stay, rate and special requests are locked after check-in.</p>}
         </Panel>
 
         <Panel title="Season & Rate Type Information">
           <div className="grid grid-cols-2 gap-2">
             <Field label="Rate type *" error={err("rateTypeId")}>
-              <Select {...register("rateTypeId")}>{options.rateTypes.map((r) => <option key={r.id} value={r.id}>{r.name}</option>)}</Select>
+              <Select {...register("rateTypeId")} disabled={stayDisabled}>{options.rateTypes.map((r) => <option key={r.id} value={r.id}>{r.name}</option>)}</Select>
             </Field>
             <Field label="Rate / night"><Input value={formatMoney(ratePerNight)} readOnly disabled /></Field>
           </div>
@@ -228,26 +236,26 @@ export function ReservationForm({ options, defaultValues, reservationId, locked 
         <Panel title="Business Source Settings">
           <div className="grid grid-cols-2 gap-2">
             <Field label="Market place *" error={err("marketPlaceId")}>
-              <Select {...register("marketPlaceId", { onChange: (e) => { const mp = options.marketPlaces.find((m) => m.id === e.target.value); if (!mp?.requiresSource) setValue("sourceId", undefined); } })}>{options.marketPlaces.map((m) => <option key={m.id} value={m.id}>{m.name}</option>)}</Select>
+              <Select {...register("marketPlaceId", { onChange: (e) => { const mp = options.marketPlaces.find((m) => m.id === e.target.value); if (!mp?.requiresSource) setValue("sourceId", undefined); } })} disabled={stayDisabled}>{options.marketPlaces.map((m) => <option key={m.id} value={m.id}>{m.name}</option>)}</Select>
             </Field>
             {marketPlace?.requiresSource && (
               <Field label="Source *" error={err("sourceId")}>
-                <Select {...register("sourceId")} aria-invalid={!!err("sourceId")}><option value="">Select source</option>{options.sources.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}</Select>
+                <Select {...register("sourceId")} aria-invalid={!!err("sourceId")} disabled={stayDisabled}><option value="">Select source</option>{options.sources.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}</Select>
               </Field>
             )}
           </div>
         </Panel>
 
-        <Panel title="Special Request" actions={!locked && <Button type="button" variant="ghost" size="sm" onClick={() => sr.append({ itemId: options.items[0]?.id ?? "", qty: 1 })}>Add item</Button>}>
+        <Panel title="Special Request" actions={!readOnly && <Button type="button" variant="ghost" size="sm" disabled={stayDisabled} onClick={() => sr.append({ itemId: options.items[0]?.id ?? "", qty: 1 })}>Add item</Button>}>
           {sr.fields.length === 0 && <p className="text-[11px] text-muted">No special request.</p>}
           <div className="space-y-2">
             {sr.fields.map((f, i) => (
               <div key={f.id} className="grid grid-cols-[1fr_70px_auto] gap-2 items-end">
                 <Field label="Item" error={err(`specialRequests.${i}.itemId`)}>
-                  <Select {...register(`specialRequests.${i}.itemId` as const)}>{options.items.map((it) => <option key={it.id} value={it.id}>{it.name} ({formatMoney(it.price)})</option>)}</Select>
+                  <Select {...register(`specialRequests.${i}.itemId` as const)} disabled={stayDisabled}>{options.items.map((it) => <option key={it.id} value={it.id}>{it.name} ({formatMoney(it.price)})</option>)}</Select>
                 </Field>
-                <Field label="Qty"><Input type="number" min={1} {...register(`specialRequests.${i}.qty` as const, { valueAsNumber: true })} /></Field>
-                {!locked && <Button type="button" variant="danger" size="sm" onClick={() => sr.remove(i)}>×</Button>}
+                <Field label="Qty"><Input type="number" min={1} {...register(`specialRequests.${i}.qty` as const, { valueAsNumber: true })} disabled={stayDisabled} /></Field>
+                {!readOnly && <Button type="button" variant="danger" size="sm" disabled={stayDisabled} onClick={() => sr.remove(i)}>×</Button>}
               </div>
             ))}
           </div>
@@ -274,7 +282,7 @@ export function ReservationForm({ options, defaultValues, reservationId, locked 
           </div>
         </Panel>
 
-        {!locked && (
+        {!readOnly && (
           <div className="flex flex-col gap-2">
             {message && <p className="text-[12px] text-danger" role="alert">{message}</p>}
             <div className="flex gap-2 justify-end">
