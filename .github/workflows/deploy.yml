@@ -55,5 +55,6 @@ jobs:
           # Short-lived token, valid only for this run: the server stores no credential.
           REPO_URL: https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
         run: |
+          scp -o BatchMode=yes -i ~/.ssh/id_ed25519 deploy/remote-deploy.sh "$SSH_USER@$HOST:/tmp/hotel-deploy.sh"
           ssh -o BatchMode=yes -i ~/.ssh/id_ed25519 "$SSH_USER@$HOST" \
-            'bash -s' -- "$REPO_URL" "${{ github.sha }}" < deploy/remote-deploy.sh
+            bash /tmp/hotel-deploy.sh "$REPO_URL" "${{ github.sha }}"

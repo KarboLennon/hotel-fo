@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
-# Runs ON THE SERVER, streamed in over SSH by .github/workflows/deploy.yml:
-#   ssh user@host 'bash -s' -- <repo-url-with-token> <commit-sha> < deploy/remote-deploy.sh
+# Runs ON THE SERVER. Copied over by .github/workflows/deploy.yml, then:
+#   bash /tmp/hotel-deploy.sh <repo-url-with-token> <commit-sha>
+# It is copied rather than piped into `bash -s`, because `docker compose exec -T` below would
+# otherwise swallow the rest of the script from the shared stdin.
 # Checks out the pushed commit, rebuilds the stack (migrations run in the `migrate` service),
 # then waits for the app to answer before reporting success.
 set -euo pipefail
@@ -22,7 +24,7 @@ docker image prune -f >/dev/null
 
 echo "==> Waiting for the app to respond"
 for _ in $(seq 1 30); do
-  if docker compose exec -T app node -e "fetch('http://localhost:3000/').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))" 2>/dev/null; then
+  if docker compose exec -T app node -e "fetch('http://localhost:3000/').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))" </dev/null 2>/dev/null; then
     echo "==> App is up"
     docker compose ps
     exit 0
