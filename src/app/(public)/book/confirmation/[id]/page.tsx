@@ -35,11 +35,10 @@ export default async function ConfirmationPage({ params }: { params: Promise<{ i
         <table className="w-full text-[12px]">
           <tbody>{rows.map(([k, v]) => <tr key={k} className="border-b border-line-soft"><th className="text-left label py-2 w-44 align-top">{k}</th><td className="py-2">{v}</td></tr>)}</tbody>
         </table>
-        <p className="mt-6 text-[11px] text-muted">Simulasi: tidak ada pembayaran sungguhan. Reservasi ini sekarang tampil di aplikasi Front Office sebagai <b>Reserved</b> dan bisa di-check-in oleh resepsionis.</p>
+        <p className="mt-6 text-[11px] text-muted">Simpan nomor reservasi Anda dan tunjukkan bersama identitas saat tiba di resepsionis. Check-in mulai pukul 14:00, check-out pukul 12:00.</p>
         <div className="no-print flex flex-wrap justify-end gap-2 mt-6">
-          <PrintButton />
           <Link href="/" className="inline-flex focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-accent"><Button type="button" variant="ghost">Booking lagi</Button></Link>
-          <Link href={`/fo/reservations/${c.id}`} className="inline-flex focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-accent"><Button type="button">Buka di Front Office</Button></Link>
+          <PrintButton />
         </div>
       </div>
     </div>
