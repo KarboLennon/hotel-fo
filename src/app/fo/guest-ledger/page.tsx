@@ -22,7 +22,7 @@ export default async function GuestLedgerPage({ searchParams }: { searchParams: 
       <PageHeader eyebrow={`${rows.length} record(s)`} title="Guest Ledger" actions={<RevenueDialog breakdown={breakdown} total={totalBalance} />} />
       <LedgerFilters f={f} options={options} />
       <LedgerTable rows={rows} />
-      <p className="mt-2 text-right text-[12px]">Total balance: <span className="display text-base">{formatMoney(totalBalance)}</span></p>
+      <p className="mt-2 text-right text-[12px]">Total balance: <span className="price text-base">{formatMoney(totalBalance)}</span></p>
     </>
   );
 }

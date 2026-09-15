@@ -280,9 +280,9 @@ export function ReservationForm({ options, defaultValues, reservationId, mode = 
             {[["Room charge", rate.roomCharge], ["Tax", rate.tax], ["Extra", rate.extra], ["Total", rate.total]].map(([k, v]) => (
               <div key={k as string} className="flex justify-between py-1.5 border-b border-line-soft"><dt className="text-muted">{k}</dt><dd className="tabular-nums">{formatMoney(v as number)}</dd></div>
             ))}
-            <div className="flex justify-between items-center py-2 bg-paper-2 -mx-3 px-3 mt-1"><dt className="label text-ink">Estimated total</dt><dd className="display text-base tabular-nums">{formatMoney(rate.balance)}</dd></div>
+            <div className="flex justify-between items-center py-2 bg-paper-2 -mx-3 px-3 mt-1"><dt className="label text-ink">Estimated total</dt><dd className="price text-base tabular-nums">{formatMoney(rate.balance)}</dd></div>
             {typeof docs?.balance === "number" && (
-              <div className="flex justify-between items-center py-2 border-t border-line-soft"><dt className="label text-ink">Folio balance</dt><dd className="display text-base tabular-nums">{formatMoney(docs.balance)}</dd></div>
+              <div className="flex justify-between items-center py-2 border-t border-line-soft"><dt className="label text-ink">Folio balance</dt><dd className="price text-base tabular-nums">{formatMoney(docs.balance)}</dd></div>
             )}
           </dl>
           <p className="text-[10px] text-muted mt-2">Tax {options.settings.taxPercent}%. Pembayaran dicatat saat check-in/checkout di folio.</p>

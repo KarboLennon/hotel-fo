@@ -56,7 +56,7 @@ export default async function LandingPage() {
                 <p className="text-[12px] text-muted flex-1">{t.blurb}</p>
                 <div className="flex items-end justify-between border-t border-line-soft pt-3">
                   <span className="text-[11px] text-muted">{t.totalRooms} kamar · {t.available} tersedia malam ini</span>
-                  <span><span className="display text-lg">{formatMoney(t.ratePerNight)}</span><span className="text-[10px] text-muted"> / malam</span></span>
+                  <span><span className="price text-lg">{formatMoney(t.ratePerNight)}</span><span className="text-[10px] text-muted"> / malam</span></span>
                 </div>
               </article>
             ))}

@@ -30,6 +30,8 @@ h1, h2, h3 { font-style: normal; }
   @apply font-label uppercase tracking-[0.12em] text-[10px] font-semibold text-muted;
 }
 .display { @apply font-display font-normal; }
+/* Money: body sans with tabular figures, never the display serif (its old-style numerals read poorly for prices). */
+.price { @apply font-body font-semibold tabular-nums tracking-tight; }
 
 @media print {
   .no-print { display: none !important; }

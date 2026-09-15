@@ -25,7 +25,7 @@ export function StaySummary({ stay, adults, kids, channel, roomType, image, rate
         <>
           {row("Harga kamar", `${formatMoney(ratePerNight)} × ${stay.nights}`)}
           {row(`Pajak ${taxPercent}%`, formatMoney(rate.tax))}
-          <div className="flex justify-between items-center pt-3"><span className="label text-ink">Total</span><span className="display text-xl tabular-nums">{formatMoney(rate.total)}</span></div>
+          <div className="flex justify-between items-center pt-3"><span className="label text-ink">Total</span><span className="price text-xl tabular-nums">{formatMoney(rate.total)}</span></div>
         </>
       )}
     </aside>

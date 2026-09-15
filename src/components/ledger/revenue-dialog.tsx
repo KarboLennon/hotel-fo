@@ -14,7 +14,7 @@ export function RevenueDialog({ breakdown, total }: { breakdown: Record<string, 
       <Dialog open={open} onOpenChange={setOpen} title="Revenue break down">
         <dl className="text-[12px]">
           {Object.entries(breakdown).map(([k, v]) => <div key={k} className="flex justify-between py-1.5 border-b border-line-soft"><dt className="text-muted">{LABEL[k] ?? k}</dt><dd className="tabular-nums">{formatMoney(v)}</dd></div>)}
-          <div className="flex justify-between py-2 mt-1 bg-paper-2 -mx-4 px-4"><dt className="label text-ink">Outstanding balance</dt><dd className="display text-base tabular-nums">{formatMoney(total)}</dd></div>
+          <div className="flex justify-between py-2 mt-1 bg-paper-2 -mx-4 px-4"><dt className="label text-ink">Outstanding balance</dt><dd className="price text-base tabular-nums">{formatMoney(total)}</dd></div>
         </dl>
       </Dialog>
     </>

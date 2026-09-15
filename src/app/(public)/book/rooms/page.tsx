@@ -47,7 +47,7 @@ export default async function RoomsPage({ searchParams }: { searchParams: Promis
                   </div>
                   <div className="flex flex-col items-end justify-between gap-2 md:min-w-44">
                     <div className="text-right">
-                      <div><span className="display text-xl">{formatMoney(t.ratePerNight)}</span><span className="text-[10px] text-muted"> / malam</span></div>
+                      <div><span className="price text-xl">{formatMoney(t.ratePerNight)}</span><span className="text-[10px] text-muted"> / malam</span></div>
                       <div className="text-[11px] text-muted">Total {stay.nights} malam + pajak: <b className="text-ink">{formatMoney(rate.total)}</b></div>
                     </div>
                     {full ? <Button disabled>Penuh</Button> : (

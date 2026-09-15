@@ -27,9 +27,9 @@ async function main() {
   });
 
   const [superDeluxe, kingSuite, presidential] = await Promise.all([
-    db.roomType.upsert({ where: { name: "Super Deluxe" }, update: {}, create: { name: "Super Deluxe", baseRate: 365 } }),
-    db.roomType.upsert({ where: { name: "King Suite" }, update: {}, create: { name: "King Suite", baseRate: 520 } }),
-    db.roomType.upsert({ where: { name: "Presidential" }, update: {}, create: { name: "Presidential", baseRate: 1100 } }),
+    db.roomType.upsert({ where: { name: "Super Deluxe" }, update: {}, create: { name: "Super Deluxe", baseRate: 365000 } }),
+    db.roomType.upsert({ where: { name: "King Suite" }, update: {}, create: { name: "King Suite", baseRate: 520000 } }),
+    db.roomType.upsert({ where: { name: "Presidential" }, update: {}, create: { name: "Presidential", baseRate: 1100000 } }),
   ]);
 
   const rooms: { number: string; floor: string; roomTypeId: string }[] = [];
@@ -57,7 +57,7 @@ async function main() {
   for (const name of ["Traveloka", "Tiket.com", "Booking.com", "Agoda"]) {
     await db.source.upsert({ where: { name }, update: {}, create: { name } });
   }
-  for (const [name, price] of [["Extra Bed", 150], ["Hair Dryer", 0], ["Baby Cot", 50]] as const) {
+  for (const [name, price] of [["Extra Bed", 150000], ["Hair Dryer", 0], ["Baby Cot", 50000]] as const) {
     await db.specialRequestItem.upsert({ where: { name }, update: {}, create: { name, price } });
   }
 

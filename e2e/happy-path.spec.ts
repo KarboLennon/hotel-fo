@@ -39,7 +39,7 @@ test("login → reserve → check in → check out → ledger", async ({ page })
   await expect(page).toHaveURL(/\/checkout$/);
   await expect(page.getByText(/Check Out ·/)).toBeVisible();
   await page.click('button:has-text("Add")');
-  await expect(page.locator("tfoot")).toContainText("0,00");
+  await expect(page.locator("tfoot")).toContainText("Rp 0");
   await page.click('button:has-text("Settle & Check Out")');
   await expect(page.getByText("Checked Out", { exact: true })).toBeVisible();
 

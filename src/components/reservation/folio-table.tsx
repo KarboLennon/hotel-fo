@@ -16,7 +16,7 @@ export function FolioTable({ lines, balance }: { lines: ReservationDetail["lines
           </tr>
         ))}
       </tbody>
-      <tfoot><tr className="bg-paper-2"><td colSpan={3} className="label text-ink px-3 py-2">Balance</td><td className="display text-base text-right px-3 py-2 tabular-nums">{formatMoney(balance)}</td></tr></tfoot>
+      <tfoot><tr className="bg-paper-2"><td colSpan={3} className="label text-ink px-3 py-2">Balance</td><td className="price text-base text-right px-3 py-2 tabular-nums">{formatMoney(balance)}</td></tr></tfoot>
     </table>
   );
 }
