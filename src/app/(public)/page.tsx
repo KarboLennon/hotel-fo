@@ -29,7 +29,7 @@ export default async function LandingPage() {
         {/* Ink overlay keeps the headline legible over any photo while staying on the token palette. */}
         <div className="absolute inset-0 bg-ink/60" aria-hidden />
         <div className="relative max-w-5xl mx-auto">
-          <p className="label text-accent mb-3">{SCHOOL_SHORT} Hotel · Serpong, Tangerang Selatan</p>
+          <p className="label text-paper mb-3">{SCHOOL_SHORT} Hotel · Serpong, Tangerang Selatan</p>
           <h1 className="display text-4xl md:text-6xl leading-tight max-w-3xl">Ketenangan yang terasa sejak Anda tiba.</h1>
           <p className="mt-4 max-w-2xl text-paper/85 text-[14px]">
             Kamar dan suite bergaya klasik, layanan yang penuh perhatian, dan harga terbaik saat Anda memesan langsung. Pilih tanggal, temukan kamar, dan kami siapkan sisanya.
