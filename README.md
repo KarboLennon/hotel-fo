@@ -74,7 +74,25 @@ server dev pada port 3000. Pastikan port itu bebas sebelum dan sesudah menjalank
    resepsionis demo. Seed aman diulang: data yang sudah ada dilewati, password admin ikut
    diperbarui dari `ADMIN_PASSWORD`.
 
-4. Update versi: `git pull && docker compose up -d --build` (migrasi baru ikut diterapkan).
+4. Update versi: `git pull && docker compose up -d --build` (migrasi baru ikut diterapkan),
+   atau cukup `git push` ke `main` bila CI/CD sudah aktif (lihat bawah).
+
+## CI/CD (GitHub Actions)
+
+Setiap push ke `main` menjalankan `.github/workflows/deploy.yml`:
+
+1. **test** — `tsc --noEmit`, ESLint, unit test (Vitest), dan `next build`.
+2. **deploy** — hanya jika test lulus: SSH ke server, checkout commit tersebut,
+   `docker compose up -d --build`, lalu menunggu app membalas 200 sebelum dinyatakan sukses
+   (skrip: `deploy/remote-deploy.sh`).
+
+Secret yang dipakai (Settings → Secrets → Actions): `DEPLOY_HOST`, `DEPLOY_USER`,
+`DEPLOY_SSH_KEY` (private key), `DEPLOY_KNOWN_HOSTS` (host key server, dipin agar aman dari
+serangan MITM). Token untuk `git fetch` di server dibuat otomatis per run, jadi tidak ada
+kredensial yang tersimpan di VPS.
+
+Syarat di server: public key deploy ada di `~/.ssh/authorized_keys`, repo sudah ter-clone di
+`/opt/hotel`, dan `.env` berisi `AUTH_SECRET`, `ADMIN_PASSWORD`, `DOMAIN`.
 
 Caddy (service `caddy`) menyediakan HTTPS otomatis untuk `DOMAIN` dan `www.DOMAIN`: record A
 keduanya harus mengarah ke server dan port 80/443 terbuka. Aplikasi: `https://DOMAIN` (booking

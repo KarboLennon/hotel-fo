@@ -8,3 +8,5 @@ docs
 e2e
 test-results
 playwright-report
+.github
+deploy
