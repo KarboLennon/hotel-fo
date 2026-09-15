@@ -26,12 +26,13 @@ html, body { overflow-x: clip; }
 body { @apply bg-paper text-ink font-body text-[13px] leading-normal antialiased; }
 h1, h2, h3 { font-style: normal; }
 
-.label {
-  @apply font-label uppercase tracking-[0.12em] text-[10px] font-semibold text-muted;
+/* Composite classes live in the components layer so plain utilities (e.g. `label text-paper`) can override them. */
+@layer components {
+  .label { @apply font-label uppercase tracking-[0.12em] text-[10px] font-semibold text-muted; }
+  .display { @apply font-display font-normal; }
+  /* Money: body sans with tabular figures, never the display serif (its old-style numerals read poorly for prices). */
+  .price { @apply font-body font-semibold tabular-nums tracking-tight; }
 }
-.display { @apply font-display font-normal; }
-/* Money: body sans with tabular figures, never the display serif (its old-style numerals read poorly for prices). */
-.price { @apply font-body font-semibold tabular-nums tracking-tight; }
 
 @media print {
   .no-print { display: none !important; }
